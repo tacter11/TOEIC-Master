@@ -1,0 +1,707 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font-sans);}
+#app{padding:1rem;max-width:640px;margin:0 auto;}
+h2.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);}
+.screen{display:none;}.screen.active{display:block;}
+.topbar{display:flex;align-items:center;gap:10px;margin-bottom:1.25rem;}
+.topbar-title{font-size:17px;font-weight:500;flex:1;color:var(--color-text-primary);}
+.back-btn{font-size:13px;color:var(--color-text-secondary);background:none;border:none;cursor:pointer;padding:4px 8px;border-radius:var(--border-radius-md);}
+.back-btn:hover{background:var(--color-background-secondary);}
+button{cursor:pointer;font-family:var(--font-sans);font-size:14px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:transparent;color:var(--color-text-primary);padding:8px 16px;transition:background .15s;}
+button:hover{background:var(--color-background-secondary);}
+button:active{transform:scale(.98);}
+button.primary{background:#378ADD;color:#fff;border-color:#378ADD;}
+button.primary:hover{background:#185FA5;border-color:#185FA5;}
+button.danger{color:var(--color-text-danger);border-color:var(--color-border-danger);}
+button.success{color:var(--color-text-success);border-color:var(--color-border-success);}
+.btn-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
+.progress-bar{height:4px;background:var(--color-background-secondary);border-radius:2px;margin-bottom:1rem;overflow:hidden;}
+.progress-fill{height:100%;background:#378ADD;border-radius:2px;transition:width .3s;}
+.mode-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem;}
+.mode-card{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.25rem 1rem;text-align:center;cursor:pointer;background:var(--color-background-primary);transition:border-color .15s,background .15s;}
+.mode-card:hover{border-color:var(--color-border-primary);background:var(--color-background-secondary);}
+.mode-card .ico{font-size:26px;margin-bottom:8px;}
+.mode-card h3{font-size:14px;font-weight:500;margin-bottom:4px;}
+.mode-card p{font-size:11px;color:var(--color-text-secondary);line-height:1.5;}
+.mode-card.disabled{opacity:.45;pointer-events:none;}
+.group-item{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:12px 14px;cursor:pointer;background:var(--color-background-primary);display:flex;align-items:center;gap:10px;margin-bottom:8px;transition:background .15s;}
+.group-item:hover{background:var(--color-background-secondary);}
+.group-num{width:30px;height:30px;border-radius:50%;background:var(--color-background-info);color:var(--color-text-info);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;flex-shrink:0;}
+.group-info h4{font-size:14px;font-weight:500;}
+.group-info p{font-size:11px;color:var(--color-text-secondary);margin-top:2px;}
+.flash-card{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);background:var(--color-background-primary);min-height:280px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem 1rem;text-align:center;position:relative;overflow:hidden;margin-bottom:.75rem;}
+.flash-overlay{position:absolute;inset:0;background:var(--color-background-secondary);opacity:0;pointer-events:none;transition:opacity .08s;}
+.flash-overlay.on{opacity:1;}
+.illus-wrap{width:100px;height:80px;margin-bottom:10px;flex-shrink:0;}
+.word-en{font-size:30px;font-weight:500;letter-spacing:.5px;margin-bottom:6px;}
+.word-ja{font-size:18px;color:var(--color-text-secondary);}
+.word-pos{font-size:11px;color:var(--color-text-tertiary);margin-top:4px;}
+.lap-badge{position:absolute;top:10px;right:12px;font-size:11px;background:var(--color-background-info);color:var(--color-text-info);padding:3px 8px;border-radius:var(--border-radius-md);}
+.counter{font-size:12px;color:var(--color-text-secondary);text-align:center;margin-bottom:.75rem;}
+.speed-row{display:flex;align-items:center;gap:8px;margin-bottom:.75rem;}
+.speed-row label{font-size:12px;color:var(--color-text-secondary);white-space:nowrap;}
+.speed-row input{flex:1;}
+.speed-val{font-size:12px;color:var(--color-text-secondary);min-width:52px;text-align:right;}
+.laps-row{display:flex;align-items:center;gap:8px;margin-bottom:.75rem;}
+.laps-row label{font-size:12px;color:var(--color-text-secondary);white-space:nowrap;}
+.laps-row input{width:60px;padding:4px 8px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:transparent;color:var(--color-text-primary);font-size:13px;text-align:center;}
+.quiz-word{font-size:32px;font-weight:500;text-align:center;padding:1rem 0 .25rem;letter-spacing:.5px;}
+.quiz-pos{font-size:11px;color:var(--color-text-tertiary);text-align:center;margin-bottom:1rem;}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:.75rem;}
+.choice-btn{padding:12px 8px;font-size:13px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-primary);cursor:pointer;text-align:center;transition:background .15s;font-family:var(--font-sans);color:var(--color-text-primary);}
+.choice-btn:hover:not(:disabled){background:var(--color-background-secondary);}
+.choice-btn.correct{background:var(--color-background-success);border-color:var(--color-border-success);color:var(--color-text-success);}
+.choice-btn.wrong{background:var(--color-background-danger);border-color:var(--color-border-danger);color:var(--color-text-danger);}
+.choice-btn:disabled{cursor:default;}
+.quiz-feedback{text-align:center;font-size:13px;font-weight:500;min-height:20px;margin-bottom:.75rem;}
+.quiz-meta{display:flex;justify-content:space-between;font-size:11px;color:var(--color-text-secondary);margin-bottom:.75rem;}
+.result-wrap{text-align:center;padding:1.25rem 0;}
+.result-wrap .big{font-size:44px;margin-bottom:10px;}
+.result-wrap h3{font-size:19px;font-weight:500;margin-bottom:4px;}
+.result-wrap p{font-size:13px;color:var(--color-text-secondary);margin-bottom:1.25rem;}
+.result-score{font-size:38px;font-weight:500;color:#378ADD;margin-bottom:2px;}
+.result-sub{font-size:12px;color:var(--color-text-secondary);margin-bottom:1.25rem;}
+.wrong-list{margin-top:.75rem;}
+.wrong-item{display:flex;align-items:center;gap:8px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 12px;margin-bottom:6px;background:var(--color-background-primary);}
+.wrong-item .we{font-size:14px;font-weight:500;flex:1;}
+.wrong-item .wj{font-size:12px;color:var(--color-text-secondary);}
+.wrong-item .wp{font-size:10px;color:var(--color-text-tertiary);margin-top:2px;}
+.badge-wrong{background:var(--color-background-danger);color:var(--color-text-danger);font-size:10px;padding:2px 7px;border-radius:var(--border-radius-md);flex-shrink:0;}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1rem;}
+.stat-card{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:.75rem;text-align:center;}
+.stat-card .sv{font-size:22px;font-weight:500;}
+.stat-card .sl{font-size:11px;color:var(--color-text-secondary);margin-top:2px;}
+</style>
+
+<div id="app">
+<h2 class="sr-only">TOEIC頻出単語学習アプリ（v2）</h2>
+
+<div id="s-home" class="screen active">
+  <div style="text-align:center;padding:1.25rem 0 1rem;">
+    <div style="font-size:26px;margin-bottom:4px;">📚</div>
+    <div style="font-size:19px;font-weight:500;margin-bottom:2px;">TOEIC単語マスター</div>
+    <div style="font-size:12px;color:var(--color-text-secondary);">頻出120語 · 4グループ</div>
+  </div>
+  <div class="mode-cards">
+    <div class="mode-card" onclick="goGroupSelect('learn')">
+      <div class="ico">⚡</div><h3>学習モード</h3><p>イラスト付きフラッシュ<br>n周設定可能</p>
+    </div>
+    <div class="mode-card" onclick="goGroupSelect('test')">
+      <div class="ico">✏️</div><h3>テストモード</h3><p>4択クイズ<br>正誤を記録</p>
+    </div>
+  </div>
+  <div class="mode-cards">
+    <div class="mode-card" id="review-card" onclick="startReview()">
+      <div class="ico">🔁</div><h3>復習モード</h3><p>間違えた単語のみ<br>フラッシュ暗記</p>
+    </div>
+    <div class="mode-card" onclick="showWrongList()">
+      <div class="ico">📋</div><h3>間違いリスト</h3><p>記録した誤答を確認<br>「覚えた」で除外</p>
+    </div>
+  </div>
+  <div id="home-wrong-count" style="text-align:center;font-size:12px;color:var(--color-text-secondary);margin-top:4px;"></div>
+</div>
+
+<div id="s-group" class="screen">
+  <div class="topbar">
+    <button class="back-btn" onclick="goHome()"><i class="ti ti-arrow-left" aria-hidden="true"></i> ホーム</button>
+    <div class="topbar-title" id="group-mode-title"></div>
+  </div>
+  <div id="group-list"></div>
+</div>
+
+<div id="s-learn" class="screen">
+  <div class="topbar">
+    <button class="back-btn" onclick="learnStop()"><i class="ti ti-arrow-left" aria-hidden="true"></i> 戻る</button>
+    <div class="topbar-title" id="learn-title"></div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="learn-prog" style="width:0%"></div></div>
+  <div class="flash-card" id="flash-card">
+    <div class="flash-overlay" id="flash-ov"></div>
+    <span class="lap-badge" id="lap-badge"></span>
+    <div class="illus-wrap" id="illus-wrap"></div>
+    <div class="word-en" id="l-en">READY?</div>
+    <div class="word-ja" id="l-ja">スタートを押して開始</div>
+    <div class="word-pos" id="l-pos"></div>
+  </div>
+  <div class="counter" id="l-counter"></div>
+  <div class="laps-row">
+    <label><i class="ti ti-repeat" aria-hidden="true"></i> 周回数</label>
+    <input type="number" id="lap-input" min="1" max="10" value="3">
+    <span style="font-size:12px;color:var(--color-text-secondary);">周</span>
+  </div>
+  <div class="speed-row">
+    <label><i class="ti ti-clock" aria-hidden="true"></i> 速度</label>
+    <input type="range" id="speed" min="1" max="5" value="3" step="1" oninput="onSpeed()">
+    <span class="speed-val" id="speed-val">普通</span>
+  </div>
+  <div class="btn-row">
+    <button class="primary" id="l-start" onclick="learnStart()">スタート</button>
+    <button id="l-pause" onclick="learnPause()" style="display:none">一時停止</button>
+    <button id="l-stop-btn" onclick="learnStop()" class="danger" style="display:none">終了</button>
+  </div>
+</div>
+
+<div id="s-learn-result" class="screen">
+  <div class="topbar">
+    <button class="back-btn" onclick="goHome()"><i class="ti ti-arrow-left" aria-hidden="true"></i> ホーム</button>
+    <div class="topbar-title">学習完了</div>
+  </div>
+  <div class="result-wrap">
+    <div class="big">✅</div>
+    <h3>学習完了！</h3>
+    <p id="lr-msg"></p>
+    <div class="btn-row">
+      <button class="primary" onclick="learnRetry()">もう一度</button>
+      <button onclick="learnShuffle()">シャッフル</button>
+      <button onclick="goHome()">ホームへ</button>
+    </div>
+  </div>
+</div>
+
+<div id="s-quiz" class="screen">
+  <div class="topbar">
+    <button class="back-btn" onclick="goGroupSelect('test')"><i class="ti ti-arrow-left" aria-hidden="true"></i> 戻る</button>
+    <div class="topbar-title" id="quiz-title"></div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="q-prog" style="width:0%"></div></div>
+  <div class="quiz-meta">
+    <span id="q-counter">1 / 30</span>
+    <span id="q-score-live">正解: 0 / 不正解: 0</span>
+  </div>
+  <div class="quiz-word" id="q-word"></div>
+  <div class="quiz-pos" id="q-pos"></div>
+  <div class="choices" id="q-choices"></div>
+  <div class="quiz-feedback" id="q-feedback"></div>
+  <div style="text-align:center;"><button class="primary" id="q-next" onclick="quizNext()" style="display:none">次の問題 →</button></div>
+</div>
+
+<div id="s-result" class="screen">
+  <div class="topbar">
+    <button class="back-btn" onclick="goHome()"><i class="ti ti-arrow-left" aria-hidden="true"></i> ホーム</button>
+    <div class="topbar-title">テスト結果</div>
+  </div>
+  <div class="result-wrap">
+    <div class="big" id="r-emoji"></div>
+    <div class="result-score" id="r-score"></div>
+    <div class="result-sub" id="r-sub"></div>
+    <h3 id="r-title"></h3>
+    <p id="r-msg"></p>
+    <div class="stat-grid">
+      <div class="stat-card"><div class="sv" id="rs-correct" style="color:var(--color-text-success)"></div><div class="sl">正解</div></div>
+      <div class="stat-card"><div class="sv" id="rs-wrong" style="color:var(--color-text-danger)"></div><div class="sl">不正解</div></div>
+      <div class="stat-card"><div class="sv" id="rs-total-wrong"></div><div class="sl">累計誤答</div></div>
+    </div>
+    <div class="btn-row">
+      <button class="primary" onclick="retryQuiz()">もう一度</button>
+      <button onclick="goGroupSelect('test')">別グループ</button>
+      <button onclick="goHome()">ホームへ</button>
+    </div>
+  </div>
+</div>
+
+<div id="s-wrong" class="screen">
+  <div class="topbar">
+    <button class="back-btn" onclick="goHome()"><i class="ti ti-arrow-left" aria-hidden="true"></i> ホーム</button>
+    <div class="topbar-title">間違いリスト</div>
+  </div>
+  <div id="wrong-list-content"></div>
+</div>
+</div>
+
+<script>
+const WORDS=[
+  {en:"attend",ja:"出席する",pos:"動詞",g:0,il:"calendar"},
+  {en:"confirm",ja:"確認する",pos:"動詞",g:0,il:"check"},
+  {en:"arrange",ja:"手配する",pos:"動詞",g:0,il:"arrange"},
+  {en:"approve",ja:"承認する",pos:"動詞",g:0,il:"approve"},
+  {en:"require",ja:"要求する",pos:"動詞",g:0,il:"require"},
+  {en:"schedule",ja:"予定する",pos:"動詞/名詞",g:0,il:"schedule"},
+  {en:"submit",ja:"提出する",pos:"動詞",g:0,il:"submit"},
+  {en:"notify",ja:"通知する",pos:"動詞",g:0,il:"notify"},
+  {en:"provide",ja:"提供する",pos:"動詞",g:0,il:"provide"},
+  {en:"purchase",ja:"購入する",pos:"動詞/名詞",g:0,il:"purchase"},
+  {en:"contract",ja:"契約",pos:"名詞",g:0,il:"contract"},
+  {en:"invoice",ja:"請求書",pos:"名詞",g:0,il:"invoice"},
+  {en:"budget",ja:"予算",pos:"名詞",g:0,il:"budget"},
+  {en:"customer",ja:"顧客",pos:"名詞",g:0,il:"customer"},
+  {en:"employee",ja:"従業員",pos:"名詞",g:0,il:"employee"},
+  {en:"deadline",ja:"締め切り",pos:"名詞",g:0,il:"deadline"},
+  {en:"equipment",ja:"機器・設備",pos:"名詞",g:0,il:"equipment"},
+  {en:"department",ja:"部署",pos:"名詞",g:0,il:"department"},
+  {en:"reservation",ja:"予約",pos:"名詞",g:0,il:"reservation"},
+  {en:"available",ja:"利用できる",pos:"形容詞",g:0,il:"available"},
+  {en:"annual",ja:"年1回の",pos:"形容詞",g:0,il:"annual"},
+  {en:"immediate",ja:"即座の",pos:"形容詞",g:0,il:"immediate"},
+  {en:"current",ja:"現在の",pos:"形容詞",g:0,il:"current"},
+  {en:"previous",ja:"以前の",pos:"形容詞",g:0,il:"previous"},
+  {en:"additional",ja:"追加の",pos:"形容詞",g:0,il:"additional"},
+  {en:"regarding",ja:"〜に関して",pos:"前置詞",g:0,il:"regarding"},
+  {en:"enclosed",ja:"同封された",pos:"形容詞",g:0,il:"enclosed"},
+  {en:"inquiry",ja:"問い合わせ",pos:"名詞",g:0,il:"inquiry"},
+  {en:"survey",ja:"調査",pos:"名詞",g:0,il:"survey"},
+  {en:"agenda",ja:"議題",pos:"名詞",g:0,il:"agenda"},
+
+  {en:"accomplish",ja:"達成する",pos:"動詞",g:1,il:"accomplish"},
+  {en:"distribute",ja:"配布する",pos:"動詞",g:1,il:"distribute"},
+  {en:"promote",ja:"昇進させる",pos:"動詞",g:1,il:"promote"},
+  {en:"estimate",ja:"見積もる",pos:"動詞/名詞",g:1,il:"estimate"},
+  {en:"determine",ja:"決定する",pos:"動詞",g:1,il:"determine"},
+  {en:"implement",ja:"実施する",pos:"動詞",g:1,il:"implement"},
+  {en:"negotiate",ja:"交渉する",pos:"動詞",g:1,il:"negotiate"},
+  {en:"postpone",ja:"延期する",pos:"動詞",g:1,il:"postpone"},
+  {en:"reimburse",ja:"払い戻す",pos:"動詞",g:1,il:"reimburse"},
+  {en:"launch",ja:"開始する・発売する",pos:"動詞/名詞",g:1,il:"launch"},
+  {en:"procedure",ja:"手順",pos:"名詞",g:1,il:"procedure"},
+  {en:"representative",ja:"代表者",pos:"名詞",g:1,il:"representative"},
+  {en:"investment",ja:"投資",pos:"名詞",g:1,il:"investment"},
+  {en:"manufacturer",ja:"製造業者",pos:"名詞",g:1,il:"manufacturer"},
+  {en:"proposal",ja:"提案書",pos:"名詞",g:1,il:"proposal"},
+  {en:"subscription",ja:"定期購読",pos:"名詞",g:1,il:"subscription"},
+  {en:"itinerary",ja:"旅行日程",pos:"名詞",g:1,il:"itinerary"},
+  {en:"warranty",ja:"保証書",pos:"名詞",g:1,il:"warranty"},
+  {en:"facilities",ja:"施設",pos:"名詞",g:1,il:"facilities"},
+  {en:"personnel",ja:"職員・人事部",pos:"名詞",g:1,il:"personnel"},
+  {en:"effective",ja:"効果的な",pos:"形容詞",g:1,il:"effective"},
+  {en:"temporary",ja:"一時的な",pos:"形容詞",g:1,il:"temporary"},
+  {en:"eligible",ja:"資格がある",pos:"形容詞",g:1,il:"eligible"},
+  {en:"complimentary",ja:"無料の",pos:"形容詞",g:1,il:"complimentary"},
+  {en:"outstanding",ja:"未払いの・優れた",pos:"形容詞",g:1,il:"outstanding"},
+  {en:"headquarters",ja:"本社",pos:"名詞",g:1,il:"headquarters"},
+  {en:"authorization",ja:"許可・認可",pos:"名詞",g:1,il:"authorization"},
+  {en:"receipt",ja:"領収書",pos:"名詞",g:1,il:"receipt"},
+  {en:"quarter",ja:"四半期",pos:"名詞",g:1,il:"quarter"},
+  {en:"inventory",ja:"在庫",pos:"名詞",g:1,il:"inventory"},
+
+  {en:"administrative",ja:"管理の",pos:"形容詞",g:2,il:"administrative"},
+  {en:"collaborate",ja:"協力する",pos:"動詞",g:2,il:"collaborate"},
+  {en:"comprehensive",ja:"総合的な",pos:"形容詞",g:2,il:"comprehensive"},
+  {en:"deduct",ja:"差し引く",pos:"動詞",g:2,il:"deduct"},
+  {en:"designate",ja:"指定する",pos:"動詞",g:2,il:"designate"},
+  {en:"expedite",ja:"迅速に処理する",pos:"動詞",g:2,il:"expedite"},
+  {en:"fluctuate",ja:"変動する",pos:"動詞",g:2,il:"fluctuate"},
+  {en:"generate",ja:"生み出す",pos:"動詞",g:2,il:"generate"},
+  {en:"guidelines",ja:"指針",pos:"名詞",g:2,il:"guidelines"},
+  {en:"accommodate",ja:"収容する",pos:"動詞",g:2,il:"accommodate"},
+  {en:"anticipate",ja:"予期する",pos:"動詞",g:2,il:"anticipate"},
+  {en:"compliance",ja:"法令遵守",pos:"名詞",g:2,il:"compliance"},
+  {en:"delegate",ja:"委任する",pos:"動詞/名詞",g:2,il:"delegate"},
+  {en:"endorse",ja:"承認する",pos:"動詞",g:2,il:"endorse"},
+  {en:"fiscal",ja:"財政の",pos:"形容詞",g:2,il:"fiscal"},
+  {en:"franchise",ja:"フランチャイズ",pos:"名詞",g:2,il:"franchise"},
+  {en:"initiative",ja:"主導権・取り組み",pos:"名詞",g:2,il:"initiative"},
+  {en:"lucrative",ja:"利益の多い",pos:"形容詞",g:2,il:"lucrative"},
+  {en:"mandatory",ja:"義務的な",pos:"形容詞",g:2,il:"mandatory"},
+  {en:"merger",ja:"合併",pos:"名詞",g:2,il:"merger"},
+  {en:"offshore",ja:"海外の",pos:"形容詞",g:2,il:"offshore"},
+  {en:"preliminary",ja:"予備の",pos:"形容詞",g:2,il:"preliminary"},
+  {en:"prospective",ja:"見込みの",pos:"形容詞",g:2,il:"prospective"},
+  {en:"revenue",ja:"収益",pos:"名詞",g:2,il:"revenue"},
+  {en:"subsidiary",ja:"子会社",pos:"名詞",g:2,il:"subsidiary"},
+  {en:"personnel",ja:"人事部",pos:"名詞",g:2,il:"personnel"},
+  {en:"dismissal",ja:"解雇",pos:"名詞",g:2,il:"dismissal"},
+  {en:"incentive",ja:"奨励金",pos:"名詞",g:2,il:"incentive"},
+  {en:"negotiate",ja:"交渉する",pos:"動詞",g:2,il:"negotiate"},
+  {en:"logistics",ja:"物流",pos:"名詞",g:2,il:"logistics"},
+
+  {en:"amend",ja:"修正する",pos:"動詞",g:3,il:"amend"},
+  {en:"arbitration",ja:"仲裁",pos:"名詞",g:3,il:"arbitration"},
+  {en:"audit",ja:"会計監査",pos:"名詞/動詞",g:3,il:"audit"},
+  {en:"benchmark",ja:"基準・指標",pos:"名詞",g:3,il:"benchmark"},
+  {en:"consolidate",ja:"統合する",pos:"動詞",g:3,il:"consolidate"},
+  {en:"depreciation",ja:"減価償却",pos:"名詞",g:3,il:"depreciation"},
+  {en:"diligent",ja:"勤勉な",pos:"形容詞",g:3,il:"diligent"},
+  {en:"entrepreneur",ja:"起業家",pos:"名詞",g:3,il:"entrepreneur"},
+  {en:"feasibility",ja:"実現可能性",pos:"名詞",g:3,il:"feasibility"},
+  {en:"incentive",ja:"動機・奨励金",pos:"名詞",g:3,il:"incentive"},
+  {en:"infrastructure",ja:"インフラ",pos:"名詞",g:3,il:"infrastructure"},
+  {en:"liaison",ja:"連絡係",pos:"名詞",g:3,il:"liaison"},
+  {en:"mediation",ja:"調停",pos:"名詞",g:3,il:"mediation"},
+  {en:"municipality",ja:"地方自治体",pos:"名詞",g:3,il:"municipality"},
+  {en:"obsolete",ja:"時代遅れの",pos:"形容詞",g:3,il:"obsolete"},
+  {en:"procurement",ja:"調達",pos:"名詞",g:3,il:"procurement"},
+  {en:"proficiency",ja:"熟練",pos:"名詞",g:3,il:"proficiency"},
+  {en:"reconcile",ja:"和解する",pos:"動詞",g:3,il:"reconcile"},
+  {en:"redundant",ja:"余剰の",pos:"形容詞",g:3,il:"redundant"},
+  {en:"remittance",ja:"送金",pos:"名詞",g:3,il:"remittance"},
+  {en:"solvent",ja:"支払い能力がある",pos:"形容詞",g:3,il:"solvent"},
+  {en:"stipulate",ja:"規定する",pos:"動詞",g:3,il:"stipulate"},
+  {en:"tenure",ja:"任期",pos:"名詞",g:3,il:"tenure"},
+  {en:"turnover",ja:"離職率・売上高",pos:"名詞",g:3,il:"turnover"},
+  {en:"collateral",ja:"担保",pos:"名詞",g:3,il:"collateral"},
+  {en:"moratorium",ja:"支払い猶予",pos:"名詞",g:3,il:"moratorium"},
+  {en:"streamline",ja:"合理化する",pos:"動詞",g:3,il:"streamline"},
+  {en:"prerequisite",ja:"前提条件",pos:"名詞",g:3,il:"prerequisite"},
+  {en:"noncompliance",ja:"違反・不遵守",pos:"名詞",g:3,il:"noncompliance"},
+  {en:"liquidate",ja:"清算する",pos:"動詞",g:3,il:"liquidate"},
+];
+
+const GROUP_NAMES=["グループ1（基礎）","グループ2（中級）","グループ3（上級）","グループ4（難問）"];
+const GROUP_DESC=["頻出ビジネス基本単語 #1–30","ビジネス中級単語 #31–60","上級ビジネス単語 #61–90","難問・最上級単語 #91–120"];
+const SPEED_MAP={1:3000,2:2000,3:1200,4:700,5:400};
+const SPEED_LABEL={1:"ゆっくり",2:"やや遅め",3:"普通",4:"速め",5:"超高速"};
+
+let wrongSet=new Set();
+let currentMode='learn',currentGroup=0;
+let learnQueue=[],learnIdx=0,learnTimer=null,learnRunning=false,learnPaused=false,learnStart_=0;
+let totalLaps=3,currentLap=1;
+let quizQueue=[],quizIdx=0,quizCorrect=0,quizWrong=0,quizAnswered=false;
+let reviewMode=false;
+
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+
+function goHome(){
+  stopLearn();
+  updateHomeCount();
+  show('s-home');
+}
+
+function updateHomeCount(){
+  const c=wrongSet.size;
+  document.getElementById('home-wrong-count').textContent=c>0?`現在 ${c}語 の誤答を記録中`:'';
+  const rc=document.getElementById('review-card');
+  if(c===0)rc.classList.add('disabled'); else rc.classList.remove('disabled');
+}
+
+function goGroupSelect(mode){
+  currentMode=mode;
+  reviewMode=false;
+  document.getElementById('group-mode-title').textContent=mode==='learn'?'⚡ 学習モード — グループ選択':'✏️ テストモード — グループ選択';
+  const list=document.getElementById('group-list');
+  list.innerHTML='';
+  for(let i=0;i<4;i++){
+    const div=document.createElement('div');
+    div.className='group-item';
+    div.onclick=(g=>()=>startSession(g))(i);
+    div.innerHTML=`<div class="group-num">${i+1}</div><div class="group-info"><h4>${GROUP_NAMES[i]}</h4><p>${GROUP_DESC[i]}</p></div><i class="ti ti-chevron-right" aria-hidden="true" style="margin-left:auto;color:var(--color-text-tertiary);font-size:16px;"></i>`;
+    list.appendChild(div);
+  }
+  show('s-group');
+}
+
+function startSession(g){currentGroup=g;if(currentMode==='learn')startLearn(g,false);else startQuiz(g);}
+
+function startReview(){
+  if(wrongSet.size===0)return;
+  reviewMode=true;
+  const queue=WORDS.filter(w=>wrongSet.has(w.en));
+  startLearnWithQueue(queue,'🔁 復習モード — 誤答単語');
+}
+
+function startLearn(g,shuffle){
+  let q=WORDS.filter(w=>w.g===g);
+  if(shuffle){for(let i=q.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[q[i],q[j]]=[q[j],q[i]];}}
+  startLearnWithQueue(q,GROUP_NAMES[g]);
+}
+
+function startLearnWithQueue(q,title){
+  learnQueue=q; learnIdx=0; currentLap=1; learnRunning=false; learnPaused=false;
+  totalLaps=parseInt(document.getElementById('lap-input').value)||3;
+  document.getElementById('learn-title').textContent=title;
+  document.getElementById('l-en').textContent='READY?';
+  document.getElementById('l-ja').textContent='スタートを押して開始';
+  document.getElementById('l-pos').textContent='';
+  document.getElementById('illus-wrap').innerHTML='';
+  document.getElementById('learn-prog').style.width='0%';
+  document.getElementById('l-counter').textContent='';
+  document.getElementById('lap-badge').textContent='';
+  document.getElementById('l-start').style.display='';
+  document.getElementById('l-pause').style.display='none';
+  document.getElementById('l-stop-btn').style.display='none';
+  document.getElementById('l-pause').textContent='一時停止';
+  document.getElementById('l-en').style.opacity='1';
+  document.getElementById('l-ja').style.opacity='1';
+  show('s-learn');
+}
+
+function getInterval(){return SPEED_MAP[document.getElementById('speed').value];}
+function onSpeed(){document.getElementById('speed-val').textContent=SPEED_LABEL[document.getElementById('speed').value];if(learnRunning&&!learnPaused){clearTimeout(learnTimer);showLearnNext();}}
+function flashIt(){const ov=document.getElementById('flash-ov');ov.classList.add('on');setTimeout(()=>ov.classList.remove('on'),100);}
+
+function buildIllus(key){
+  const svgs={
+    calendar:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="15" width="80" height="60" rx="6" fill="#E6F1FB" stroke="#378ADD" stroke-width="2"/><rect x="10" y="15" width="80" height="20" rx="6" fill="#378ADD"/><rect x="10" y="25" width="80" height="10" fill="#378ADD"/><circle cx="30" cy="12" r="5" fill="#185FA5"/><circle cx="70" cy="12" r="5" fill="#185FA5"/><rect x="20" y="44" width="10" height="8" rx="2" fill="#B5D4F4"/><rect x="35" y="44" width="10" height="8" rx="2" fill="#B5D4F4"/><rect x="50" y="44" width="10" height="8" rx="2" fill="#378ADD"/><rect x="65" y="44" width="10" height="8" rx="2" fill="#B5D4F4"/><rect x="20" y="57" width="10" height="8" rx="2" fill="#B5D4F4"/><rect x="35" y="57" width="10" height="8" rx="2" fill="#B5D4F4"/><rect x="50" y="57" width="10" height="8" rx="2" fill="#B5D4F4"/></svg>`,
+    check:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="15" y="10" width="70" height="60" rx="8" fill="#EAF3DE" stroke="#639922" stroke-width="2"/><polyline points="28,42 44,56 72,28" fill="none" stroke="#639922" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    approve:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="15" y="10" width="70" height="60" rx="8" fill="#EAF3DE" stroke="#639922" stroke-width="2"/><circle cx="50" cy="38" r="14" fill="#639922"/><polyline points="40,38 47,46 62,30" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><rect x="22" y="58" width="56" height="5" rx="2" fill="#C0DD97"/></svg>`,
+    require:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="15" y="15" width="70" height="50" rx="8" fill="#FAEEDA" stroke="#BA7517" stroke-width="2"/><text x="50" y="46" font-size="28" text-anchor="middle" fill="#BA7517" font-weight="bold">!</text><rect x="22" y="56" width="56" height="4" rx="2" fill="#FAC775"/></svg>`,
+    arrange:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="20" width="25" height="18" rx="4" fill="#B5D4F4" stroke="#378ADD" stroke-width="1.5"/><rect x="37.5" y="10" width="25" height="18" rx="4" fill="#85B7EB" stroke="#378ADD" stroke-width="1.5"/><rect x="65" y="20" width="25" height="18" rx="4" fill="#B5D4F4" stroke="#378ADD" stroke-width="1.5"/><line x1="35" y1="29" x2="37.5" y2="29" stroke="#378ADD" stroke-width="1.5"/><line x1="62.5" y1="29" x2="65" y2="29" stroke="#378ADD" stroke-width="1.5"/><rect x="10" y="48" width="80" height="12" rx="4" fill="#E6F1FB" stroke="#378ADD" stroke-width="1.5"/></svg>`,
+    schedule:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="15" width="80" height="58" rx="6" fill="#FBEAF0" stroke="#D4537E" stroke-width="2"/><rect x="10" y="15" width="80" height="16" rx="6" fill="#D4537E"/><rect x="10" y="21" width="80" height="10" fill="#D4537E"/><rect x="18" y="40" width="18" height="5" rx="2" fill="#F4C0D1"/><rect x="41" y="40" width="18" height="5" rx="2" fill="#ED93B1"/><rect x="64" y="40" width="18" height="5" rx="2" fill="#F4C0D1"/><rect x="18" y="52" width="28" height="5" rx="2" fill="#F4C0D1"/><rect x="52" y="52" width="12" height="5" rx="2" fill="#ED93B1"/></svg>`,
+    submit:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="20" y="25" width="60" height="40" rx="6" fill="#E6F1FB" stroke="#378ADD" stroke-width="2"/><rect x="30" y="35" width="40" height="4" rx="2" fill="#85B7EB"/><rect x="30" y="44" width="30" height="4" rx="2" fill="#85B7EB"/><polyline points="50,10 50,25 43,18" fill="none" stroke="#378ADD" stroke-width="3" stroke-linecap="round"/><polyline points="50,10 57,18" fill="none" stroke="#378ADD" stroke-width="3" stroke-linecap="round"/></svg>`,
+    notify:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><path d="M50 12 C35 12 25 23 25 38 L25 52 L18 60 L82 60 L75 52 L75 38 C75 23 65 12 50 12Z" fill="#FAEEDA" stroke="#BA7517" stroke-width="2"/><rect x="42" y="60" width="16" height="8" rx="4" fill="#BA7517"/><circle cx="50" cy="12" r="5" fill="#EF9F27"/></svg>`,
+    provide:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="30" y="10" width="40" height="30" rx="6" fill="#E1F5EE" stroke="#1D9E75" stroke-width="2"/><polyline points="30,55 50,65 70,55" fill="none" stroke="#1D9E75" stroke-width="2.5" stroke-linecap="round"/><line x1="50" y1="40" x2="50" y2="65" stroke="#1D9E75" stroke-width="2.5"/><rect x="37" y="18" width="26" height="4" rx="2" fill="#9FE1CB"/><rect x="37" y="26" width="18" height="4" rx="2" fill="#9FE1CB"/></svg>`,
+    purchase:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><path d="M15 20 L25 20 L35 55 L75 55 L85 32 L30 32" fill="none" stroke="#D4537E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="42" cy="63" r="5" fill="#D4537E"/><circle cx="68" cy="63" r="5" fill="#D4537E"/><circle cx="15" cy="20" r="4" fill="#ED93B1"/></svg>`,
+    contract:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="20" y="8" width="60" height="70" rx="5" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="2"/><rect x="28" y="20" width="44" height="4" rx="2" fill="#B4B2A9"/><rect x="28" y="30" width="44" height="4" rx="2" fill="#B4B2A9"/><rect x="28" y="40" width="32" height="4" rx="2" fill="#B4B2A9"/><line x1="28" y1="60" x2="48" y2="60" stroke="#5F5E5A" stroke-width="2"/><line x1="58" y1="60" x2="72" y2="60" stroke="#5F5E5A" stroke-width="2"/><path d="M28 68 Q33 62 38 68" fill="none" stroke="#5F5E5A" stroke-width="1.5"/></svg>`,
+    invoice:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="18" y="8" width="64" height="68" rx="5" fill="#FAEEDA" stroke="#BA7517" stroke-width="2"/><rect x="26" y="20" width="30" height="4" rx="2" fill="#FAC775"/><rect x="26" y="30" width="48" height="3" rx="1.5" fill="#EF9F27"/><rect x="26" y="37" width="48" height="3" rx="1.5" fill="#EF9F27"/><rect x="26" y="44" width="48" height="3" rx="1.5" fill="#EF9F27"/><rect x="26" y="55" width="24" height="10" rx="3" fill="#BA7517"/><text x="38" y="63" font-size="8" fill="#fff" text-anchor="middle">¥ 合計</text></svg>`,
+    budget:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="12" y="38" width="14" height="30" rx="3" fill="#C0DD97"/><rect x="30" y="28" width="14" height="40" rx="3" fill="#97C459"/><rect x="48" y="18" width="14" height="50" rx="3" fill="#639922"/><rect x="66" y="32" width="14" height="36" rx="3" fill="#97C459"/><line x1="10" y1="68" x2="90" y2="68" stroke="#3B6D11" stroke-width="2"/></svg>`,
+    customer:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="25" r="16" fill="#B5D4F4" stroke="#378ADD" stroke-width="2"/><path d="M20 72 C20 52 80 52 80 72" fill="#E6F1FB" stroke="#378ADD" stroke-width="2"/><circle cx="50" cy="22" r="7" fill="#378ADD"/><path d="M30 55 C30 45 70 45 70 55 L70 60 L30 60Z" fill="#B5D4F4"/></svg>`,
+    employee:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="22" r="14" fill="#9FE1CB" stroke="#1D9E75" stroke-width="2"/><circle cx="50" cy="19" r="6" fill="#1D9E75"/><path d="M28 68 C28 48 72 48 72 68" fill="#E1F5EE" stroke="#1D9E75" stroke-width="2"/><rect x="38" y="50" width="24" height="4" rx="2" fill="#5DCAA5"/></svg>`,
+    deadline:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="40" r="30" fill="#FCEBEB" stroke="#E24B4A" stroke-width="2.5"/><line x1="50" y1="40" x2="50" y2="18" stroke="#E24B4A" stroke-width="3" stroke-linecap="round"/><line x1="50" y1="40" x2="66" y2="48" stroke="#A32D2D" stroke-width="3" stroke-linecap="round"/><circle cx="50" cy="40" r="3" fill="#E24B4A"/></svg>`,
+    equipment:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="20" y="25" width="60" height="38" rx="6" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="2"/><rect x="28" y="33" width="18" height="14" rx="3" fill="#888780"/><rect x="52" y="33" width="8" height="6" rx="2" fill="#B4B2A9"/><rect x="64" y="33" width="8" height="6" rx="2" fill="#B4B2A9"/><rect x="52" y="42" width="8" height="6" rx="2" fill="#B4B2A9"/><rect x="38" y="70" width="24" height="6" rx="2" fill="#888780"/><line x1="50" y1="63" x2="50" y2="70" stroke="#5F5E5A" stroke-width="2"/></svg>`,
+    department:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="38" y="8" width="24" height="16" rx="4" fill="#85B7EB" stroke="#378ADD" stroke-width="1.5"/><rect x="10" y="42" width="22" height="16" rx="4" fill="#B5D4F4" stroke="#378ADD" stroke-width="1.5"/><rect x="39" y="42" width="22" height="16" rx="4" fill="#B5D4F4" stroke="#378ADD" stroke-width="1.5"/><rect x="68" y="42" width="22" height="16" rx="4" fill="#B5D4F4" stroke="#378ADD" stroke-width="1.5"/><line x1="50" y1="24" x2="50" y2="42" stroke="#378ADD" stroke-width="1.5"/><line x1="50" y1="35" x2="21" y2="35" stroke="#378ADD" stroke-width="1.5"/><line x1="50" y1="35" x2="79" y2="35" stroke="#378ADD" stroke-width="1.5"/><line x1="21" y1="35" x2="21" y2="42" stroke="#378ADD" stroke-width="1.5"/><line x1="79" y1="35" x2="79" y2="42" stroke="#378ADD" stroke-width="1.5"/></svg>`,
+    reservation:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="15" y="15" width="70" height="55" rx="6" fill="#FBEAF0" stroke="#D4537E" stroke-width="2"/><rect x="15" y="15" width="70" height="18" rx="6" fill="#D4537E"/><rect x="15" y="23" width="70" height="10" fill="#D4537E"/><circle cx="32" cy="46" r="7" fill="#ED93B1"/><circle cx="50" cy="46" r="7" fill="#D4537E"/><circle cx="68" cy="46" r="7" fill="#ED93B1"/><text x="50" y="50" font-size="8" text-anchor="middle" fill="#fff">OK</text></svg>`,
+    available:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="40" r="28" fill="#EAF3DE" stroke="#639922" stroke-width="2.5"/><polyline points="34,40 46,52 68,28" fill="none" stroke="#639922" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    annual:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="40" r="28" fill="#E6F1FB" stroke="#378ADD" stroke-width="2"/><path d="M50 12 A28 28 0 0 1 78 40" fill="none" stroke="#378ADD" stroke-width="4" stroke-linecap="round"/><text x="50" y="46" font-size="14" font-weight="bold" text-anchor="middle" fill="#378ADD">365</text></svg>`,
+    immediate:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="40" r="28" fill="#FCEBEB" stroke="#E24B4A" stroke-width="2.5"/><line x1="50" y1="40" x2="50" y2="18" stroke="#E24B4A" stroke-width="3.5" stroke-linecap="round"/><line x1="50" y1="40" x2="60" y2="40" stroke="#A32D2D" stroke-width="2.5" stroke-linecap="round"/><circle cx="50" cy="40" r="3" fill="#E24B4A"/><path d="M70 20 L78 12 M76 22 L84 14" stroke="#E24B4A" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+    current:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="40" r="26" fill="#E6F1FB" stroke="#378ADD" stroke-width="2"/><line x1="50" y1="40" x2="50" y2="20" stroke="#378ADD" stroke-width="3" stroke-linecap="round"/><line x1="50" y1="40" x2="64" y2="48" stroke="#185FA5" stroke-width="2.5" stroke-linecap="round"/><circle cx="50" cy="40" r="3" fill="#378ADD"/><text x="50" y="70" font-size="9" text-anchor="middle" fill="#185FA5">NOW</text></svg>`,
+    previous:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="12" y="20" width="35" height="45" rx="5" fill="#D3D1C7" stroke="#888780" stroke-width="2"/><rect x="52" y="20" width="35" height="45" rx="5" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="2"/><polyline points="35,42 25,42" fill="none" stroke="#888780" stroke-width="2.5" stroke-linecap="round"/><polyline points="29,36 23,42 29,48" fill="none" stroke="#888780" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    additional:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="15" y="25" width="50" height="35" rx="5" fill="#E6F1FB" stroke="#378ADD" stroke-width="2"/><circle cx="76" cy="32" r="16" fill="#EAF3DE" stroke="#639922" stroke-width="2"/><line x1="76" y1="24" x2="76" y2="40" stroke="#639922" stroke-width="3" stroke-linecap="round"/><line x1="68" y1="32" x2="84" y2="32" stroke="#639922" stroke-width="3" stroke-linecap="round"/></svg>`,
+    regarding:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="15" y="20" width="70" height="46" rx="6" fill="#EEEDFE" stroke="#534AB7" stroke-width="2"/><rect x="23" y="30" width="54" height="4" rx="2" fill="#AFA9EC"/><rect x="23" y="40" width="40" height="4" rx="2" fill="#AFA9EC"/><circle cx="76" cy="20" r="10" fill="#534AB7"/><text x="76" y="24" font-size="11" font-weight="bold" text-anchor="middle" fill="#fff">re</text></svg>`,
+    enclosed:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="15" y="22" width="70" height="46" rx="6" fill="#FAEEDA" stroke="#BA7517" stroke-width="2"/><polyline points="15,22 50,48 85,22" fill="none" stroke="#BA7517" stroke-width="2"/><rect x="40" y="12" width="20" height="14" rx="3" fill="#EF9F27"/><line x1="40" y1="12" x2="50" y2="22" stroke="#BA7517" stroke-width="1.5"/><line x1="60" y1="12" x2="50" y2="22" stroke="#BA7517" stroke-width="1.5"/></svg>`,
+    inquiry:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="15" y="15" width="70" height="50" rx="8" fill="#E6F1FB" stroke="#378ADD" stroke-width="2"/><text x="50" y="48" font-size="28" font-weight="bold" text-anchor="middle" fill="#378ADD">?</text><rect x="22" y="58" width="56" height="4" rx="2" fill="#B5D4F4"/></svg>`,
+    survey:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="18" y="10" width="64" height="62" rx="6" fill="#F1EFE8" stroke="#888780" stroke-width="2"/><rect x="26" y="22" width="10" height="10" rx="2" fill="#B4B2A9"/><rect x="26" y="38" width="10" height="10" rx="2" fill="#B4B2A9"/><rect x="26" y="54" width="10" height="10" rx="2" fill="#639922"/><rect x="42" y="25" width="28" height="4" rx="2" fill="#D3D1C7"/><rect x="42" y="41" width="20" height="4" rx="2" fill="#D3D1C7"/><rect x="42" y="57" width="24" height="4" rx="2" fill="#D3D1C7"/><polyline points="28,59 31,62 36,56" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    agenda:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="20" y="10" width="60" height="66" rx="6" fill="#EEEDFE" stroke="#534AB7" stroke-width="2"/><rect x="20" y="10" width="60" height="18" rx="6" fill="#534AB7"/><rect x="20" y="18" width="60" height="10" fill="#534AB7"/><rect x="28" y="36" width="8" height="8" rx="2" fill="#AFA9EC"/><rect x="42" y="38" width="28" height="4" rx="2" fill="#AFA9EC"/><rect x="28" y="50" width="8" height="8" rx="2" fill="#AFA9EC"/><rect x="42" y="52" width="20" height="4" rx="2" fill="#AFA9EC"/><rect x="28" y="64" width="8" height="8" rx="2" fill="#7F77DD"/><rect x="42" y="66" width="24" height="4" rx="2" fill="#7F77DD"/></svg>`,
+    accomplish:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><polygon points="50,10 58,34 84,34 63,50 71,74 50,58 29,74 37,50 16,34 42,34" fill="#FAEEDA" stroke="#BA7517" stroke-width="2"/><polygon points="50,18 56,34 72,34 60,44 64,60 50,50 36,60 40,44 28,34 44,34" fill="#EF9F27"/></svg>`,
+    distribute:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="38" y="10" width="24" height="16" rx="4" fill="#85B7EB" stroke="#378ADD" stroke-width="1.5"/><rect x="10" y="52" width="20" height="16" rx="4" fill="#B5D4F4" stroke="#378ADD" stroke-width="1.5"/><rect x="40" y="52" width="20" height="16" rx="4" fill="#B5D4F4" stroke="#378ADD" stroke-width="1.5"/><rect x="70" y="52" width="20" height="16" rx="4" fill="#B5D4F4" stroke="#378ADD" stroke-width="1.5"/><line x1="50" y1="26" x2="50" y2="52" stroke="#378ADD" stroke-width="1.5"/><line x1="50" y1="38" x2="20" y2="38" stroke="#378ADD" stroke-width="1.5"/><line x1="50" y1="38" x2="80" y2="38" stroke="#378ADD" stroke-width="1.5"/><line x1="20" y1="38" x2="20" y2="52" stroke="#378ADD" stroke-width="1.5"/><line x1="80" y1="38" x2="80" y2="52" stroke="#378ADD" stroke-width="1.5"/></svg>`,
+    promote:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="30" y="48" width="40" height="22" rx="5" fill="#EAF3DE" stroke="#639922" stroke-width="2"/><rect x="38" y="28" width="24" height="20" rx="4" fill="#C0DD97" stroke="#639922" stroke-width="2"/><rect x="44" y="10" width="12" height="18" rx="3" fill="#97C459" stroke="#639922" stroke-width="2"/><polyline points="50,5 50,10" fill="none" stroke="#3B6D11" stroke-width="2.5" stroke-linecap="round"/><polyline points="44,8 50,4 56,8" fill="none" stroke="#3B6D11" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    estimate:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="18" y="12" width="64" height="60" rx="6" fill="#FAEEDA" stroke="#BA7517" stroke-width="2"/><rect x="26" y="24" width="36" height="5" rx="2" fill="#FAC775"/><rect x="26" y="34" width="48" height="4" rx="2" fill="#EF9F27"/><rect x="26" y="42" width="48" height="4" rx="2" fill="#EF9F27"/><rect x="52" y="55" width="22" height="10" rx="3" fill="#BA7517"/><text x="63" y="63" font-size="8" fill="#fff" text-anchor="middle">見積</text></svg>`,
+    determine:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="38" r="26" fill="#EEEDFE" stroke="#534AB7" stroke-width="2.5"/><line x1="50" y1="20" x2="50" y2="56" stroke="#534AB7" stroke-width="2.5"/><line x1="32" y1="38" x2="68" y2="38" stroke="#534AB7" stroke-width="2.5"/><circle cx="50" cy="38" r="5" fill="#534AB7"/><polyline points="50,20 50,14" fill="none" stroke="#7F77DD" stroke-width="2" stroke-linecap="round"/></svg>`,
+    implement:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="12" y="30" width="22" height="22" rx="4" fill="#E1F5EE" stroke="#1D9E75" stroke-width="1.5"/><rect x="39" y="22" width="22" height="22" rx="4" fill="#9FE1CB" stroke="#1D9E75" stroke-width="1.5"/><rect x="66" y="30" width="22" height="22" rx="4" fill="#E1F5EE" stroke="#1D9E75" stroke-width="1.5"/><line x1="34" y1="41" x2="39" y2="33" stroke="#1D9E75" stroke-width="2" stroke-linecap="round"/><line x1="61" y1="33" x2="66" y2="41" stroke="#1D9E75" stroke-width="2" stroke-linecap="round"/><line x1="22" y1="52" x2="50" y2="62" stroke="#1D9E75" stroke-width="2" stroke-linecap="round"/><line x1="78" y1="52" x2="50" y2="62" stroke="#1D9E75" stroke-width="2" stroke-linecap="round"/></svg>`,
+    negotiate:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="8" y="20" width="34" height="28" rx="6" fill="#E6F1FB" stroke="#378ADD" stroke-width="1.5"/><rect x="58" y="20" width="34" height="28" rx="6" fill="#E6F1FB" stroke="#378ADD" stroke-width="1.5"/><path d="M42 34 Q50 28 58 34" fill="none" stroke="#378ADD" stroke-width="2.5" stroke-linecap="round"/><circle cx="25" cy="34" r="6" fill="#B5D4F4"/><circle cx="75" cy="34" r="6" fill="#B5D4F4"/><line x1="25" y1="55" x2="75" y2="55" stroke="#378ADD" stroke-width="2" stroke-linecap="round"/><polyline points="70,49 76,55 70,61" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    postpone:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><circle cx="38" cy="36" r="22" fill="#FAEEDA" stroke="#BA7517" stroke-width="2.5"/><line x1="38" y1="36" x2="38" y2="18" stroke="#BA7517" stroke-width="3" stroke-linecap="round"/><line x1="38" y1="36" x2="52" y2="44" stroke="#854F0B" stroke-width="2.5" stroke-linecap="round"/><line x1="62" y1="30" x2="86" y2="30" stroke="#E24B4A" stroke-width="3" stroke-linecap="round" stroke-dasharray="5,4"/><polyline points="80,24 86,30 80,36" fill="none" stroke="#E24B4A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    reimburse:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="18" y="25" width="64" height="38" rx="6" fill="#EAF3DE" stroke="#639922" stroke-width="2"/><text x="50" y="50" font-size="18" font-weight="bold" text-anchor="middle" fill="#639922">¥</text><polyline points="26,18 26,12 74,12 74,18" fill="none" stroke="#639922" stroke-width="2" stroke-linecap="round"/><polyline points="40,55 40,64 60,64" fill="none" stroke="#639922" stroke-width="2" stroke-linecap="round"/><polyline points="54,60 60,64 54,68" fill="none" stroke="#639922" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    launch:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><path d="M50 8 L58 28 L78 30 L62 46 L67 68 L50 58 L33 68 L38 46 L22 30 L42 28Z" fill="#FAEEDA" stroke="#BA7517" stroke-width="1.5"/><path d="M50 16 L56 30 L70 31 L60 42 L63 57 L50 50 L37 57 L40 42 L30 31 L44 30Z" fill="#EF9F27"/><line x1="50" y1="70" x2="50" y2="75" stroke="#BA7517" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+    procedure:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="8" y="28" width="22" height="16" rx="4" fill="#E6F1FB" stroke="#378ADD" stroke-width="1.5"/><rect x="39" y="28" width="22" height="16" rx="4" fill="#85B7EB" stroke="#378ADD" stroke-width="1.5"/><rect x="70" y="28" width="22" height="16" rx="4" fill="#378ADD" stroke="#185FA5" stroke-width="1.5"/><line x1="30" y1="36" x2="39" y2="36" stroke="#378ADD" stroke-width="2" stroke-linecap="round"/><line x1="61" y1="36" x2="70" y2="36" stroke="#378ADD" stroke-width="2" stroke-linecap="round"/><polyline points="66,30 72,36 66,42" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><text x="19" y="56" font-size="8" text-anchor="middle" fill="#185FA5">1</text><text x="50" y="56" font-size="8" text-anchor="middle" fill="#185FA5">2</text><text x="81" y="56" font-size="8" text-anchor="middle" fill="#fff">3</text></svg>`,
+    representative:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="22" r="13" fill="#B5D4F4" stroke="#378ADD" stroke-width="2"/><circle cx="50" cy="19" r="6" fill="#378ADD"/><path d="M28 66 C28 48 72 48 72 66" fill="#E6F1FB" stroke="#378ADD" stroke-width="2"/><rect x="32" y="50" width="36" height="5" rx="2" fill="#B5D4F4"/><polygon points="50,8 52,4 50,1 48,4" fill="#EF9F27"/></svg>`,
+    investment:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><polyline points="12,65 30,45 48,52 66,28 88,15" fill="none" stroke="#639922" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><line x1="10" y1="68" x2="90" y2="68" stroke="#3B6D11" stroke-width="2"/><line x1="10" y1="15" x2="10" y2="68" stroke="#3B6D11" stroke-width="2"/><circle cx="88" cy="15" r="5" fill="#639922"/><polyline points="82,10 88,5 94,10" fill="none" stroke="#639922" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    manufacturer:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="35" width="80" height="36" rx="4" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="2"/><polygon points="10,35 28,18 46,35" fill="#D3D1C7" stroke="#5F5E5A" stroke-width="1.5"/><polygon points="40,35 58,18 76,35" fill="#D3D1C7" stroke="#5F5E5A" stroke-width="1.5"/><rect x="40" y="52" width="20" height="19" rx="3" fill="#888780"/><rect x="20" y="48" width="14" height="12" rx="3" fill="#B4B2A9"/><rect x="66" y="48" width="14" height="12" rx="3" fill="#B4B2A9"/></svg>`,
+    proposal:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="20" y="10" width="60" height="65" rx="6" fill="#EEEDFE" stroke="#534AB7" stroke-width="2"/><rect x="28" y="22" width="44" height="5" rx="2" fill="#7F77DD"/><rect x="28" y="32" width="44" height="4" rx="2" fill="#AFA9EC"/><rect x="28" y="41" width="34" height="4" rx="2" fill="#AFA9EC"/><rect x="60" y="56" width="16" height="14" rx="4" fill="#534AB7"/><text x="68" y="66" font-size="9" fill="#fff" text-anchor="middle">提案</text></svg>`,
+    subscription:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="15" y="18" width="70" height="46" rx="8" fill="#FBEAF0" stroke="#D4537E" stroke-width="2"/><text x="50" y="46" font-size="16" font-weight="bold" text-anchor="middle" fill="#D4537E">SUB</text><polyline points="35,60 35,70 65,70 65,60" fill="none" stroke="#D4537E" stroke-width="2" stroke-linecap="round"/><line x1="50" y1="70" x2="50" y2="75" stroke="#D4537E" stroke-width="2" stroke-linecap="round"/></svg>`,
+    itinerary:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="38" r="8" fill="#B5D4F4" stroke="#378ADD" stroke-width="2"/><circle cx="50" cy="22" r="8" fill="#85B7EB" stroke="#378ADD" stroke-width="2"/><circle cx="80" cy="38" r="8" fill="#B5D4F4" stroke="#378ADD" stroke-width="2"/><circle cx="50" cy="58" r="8" fill="#378ADD" stroke="#185FA5" stroke-width="2"/><line x1="27" y1="32" x2="43" y2="27" stroke="#378ADD" stroke-width="1.5"/><line x1="57" y1="27" x2="73" y2="32" stroke="#378ADD" stroke-width="1.5"/><line x1="75" y1="44" x2="58" y2="52" stroke="#378ADD" stroke-width="1.5"/><line x1="42" y1="52" x2="25" y2="44" stroke="#378ADD" stroke-width="1.5"/></svg>`,
+    warranty:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><path d="M50 8 L82 22 L82 50 C82 64 66 74 50 78 C34 74 18 64 18 50 L18 22 Z" fill="#EAF3DE" stroke="#639922" stroke-width="2.5"/><polyline points="34,44 46,56 68,34" fill="none" stroke="#639922" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    facilities:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="12" y="30" width="30" height="42" rx="4" fill="#E6F1FB" stroke="#378ADD" stroke-width="1.5"/><rect x="58" y="20" width="30" height="52" rx="4" fill="#85B7EB" stroke="#378ADD" stroke-width="2"/><rect x="18" y="44" width="10" height="14" rx="2" fill="#B5D4F4"/><rect x="65" y="35" width="10" height="12" rx="2" fill="#378ADD"/><rect x="65" y="54" width="10" height="12" rx="2" fill="#378ADD"/><line x1="42" y1="50" x2="58" y2="50" stroke="#378ADD" stroke-width="1.5"/></svg>`,
+    effective:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="38" r="26" fill="#EAF3DE" stroke="#639922" stroke-width="2"/><line x1="24" y1="38" x2="76" y2="38" stroke="#D3D1C7" stroke-width="1" stroke-dasharray="3,3"/><rect x="35" y="20" width="30" height="8" rx="2" fill="#C0DD97"/><circle cx="50" cy="38" r="10" fill="#639922"/><polyline points="44,38 48,42 56,32" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    temporary:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="38" r="26" fill="#FAEEDA" stroke="#BA7517" stroke-width="2"/><line x1="50" y1="38" x2="50" y2="18" stroke="#BA7517" stroke-width="3" stroke-linecap="round"/><line x1="50" y1="38" x2="64" y2="50" stroke="#854F0B" stroke-width="2.5" stroke-linecap="round"/><circle cx="50" cy="38" r="3" fill="#BA7517"/><line x1="35" y1="70" x2="65" y2="70" stroke="#EF9F27" stroke-width="3" stroke-linecap="round" stroke-dasharray="5,4"/></svg>`,
+    eligible:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="15" y="18" width="70" height="48" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="2"/><circle cx="50" cy="38" r="12" fill="#534AB7"/><polyline points="42,38 48,44 60,30" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="22" y="56" width="56" height="4" rx="2" fill="#AFA9EC"/></svg>`,
+    complimentary:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="15" y="25" width="70" height="36" rx="6" fill="#EAF3DE" stroke="#639922" stroke-width="2"/><rect x="47" y="12" width="6" height="14" rx="3" fill="#639922"/><rect x="38" y="18" width="24" height="6" rx="3" fill="#639922"/><text x="50" y="48" font-size="13" font-weight="bold" text-anchor="middle" fill="#639922">FREE</text></svg>`,
+    outstanding:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><polygon points="50,10 60,36 88,36 66,52 74,78 50,62 26,78 34,52 12,36 40,36" fill="#FAEEDA" stroke="#BA7517" stroke-width="2"/></svg>`,
+    headquarters:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="22" y="22" width="56" height="52" rx="4" fill="#E6F1FB" stroke="#378ADD" stroke-width="2.5"/><polygon points="22,22 50,6 78,22" fill="#85B7EB" stroke="#378ADD" stroke-width="2"/><rect x="38" y="50" width="24" height="24" rx="3" fill="#378ADD"/><rect x="30" y="32" width="12" height="10" rx="2" fill="#B5D4F4"/><rect x="58" y="32" width="12" height="10" rx="2" fill="#B5D4F4"/></svg>`,
+    authorization:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="25" y="30" width="50" height="36" rx="6" fill="#FAEEDA" stroke="#BA7517" stroke-width="2"/><path d="M35 30 L35 22 C35 14 65 14 65 22 L65 30" fill="none" stroke="#BA7517" stroke-width="2.5"/><circle cx="50" cy="46" r="8" fill="#BA7517"/><rect x="47" y="46" width="6" height="10" rx="2" fill="#FAEEDA"/></svg>`,
+    receipt:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><path d="M18 8 L18 76 L26 70 L34 76 L42 70 L50 76 L58 70 L66 76 L74 70 L82 76 L82 8 Z" fill="#EAF3DE" stroke="#639922" stroke-width="2"/><rect x="26" y="20" width="20" height="4" rx="2" fill="#97C459"/><rect x="26" y="30" width="48" height="3" rx="1.5" fill="#C0DD97"/><rect x="26" y="38" width="48" height="3" rx="1.5" fill="#C0DD97"/><rect x="26" y="50" width="24" height="8" rx="2" fill="#639922"/><text x="38" y="57" font-size="7" fill="#fff" text-anchor="middle">合計</text></svg>`,
+    quarter:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="40" r="28" fill="#EEEDFE" stroke="#534AB7" stroke-width="2"/><line x1="50" y1="12" x2="50" y2="68" stroke="#534AB7" stroke-width="1.5"/><line x1="22" y1="40" x2="78" y2="40" stroke="#534AB7" stroke-width="1.5"/><path d="M50 12 A28 28 0 0 1 78 40" fill="#AFA9EC"/><text x="62" y="30" font-size="9" text-anchor="middle" fill="#26215C">Q1</text></svg>`,
+    inventory:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="38" width="20" height="32" rx="3" fill="#B5D4F4" stroke="#378ADD" stroke-width="1.5"/><rect x="35" y="28" width="20" height="42" rx="3" fill="#85B7EB" stroke="#378ADD" stroke-width="1.5"/><rect x="60" y="18" width="20" height="52" rx="3" fill="#378ADD" stroke="#185FA5" stroke-width="1.5"/><line x1="8" y1="70" x2="92" y2="70" stroke="#185FA5" stroke-width="2"/></svg>`,
+    administrative:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="15" y="10" width="70" height="65" rx="5" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="2"/><rect x="15" y="10" width="70" height="18" rx="5" fill="#5F5E5A"/><rect x="15" y="18" width="70" height="10" fill="#5F5E5A"/><rect x="22" y="36" width="56" height="5" rx="2" fill="#B4B2A9"/><rect x="22" y="46" width="40" height="5" rx="2" fill="#B4B2A9"/><rect x="22" y="56" width="48" height="5" rx="2" fill="#B4B2A9"/></svg>`,
+    collaborate:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><circle cx="28" cy="30" r="12" fill="#B5D4F4" stroke="#378ADD" stroke-width="2"/><circle cx="72" cy="30" r="12" fill="#B5D4F4" stroke="#378ADD" stroke-width="2"/><circle cx="50" cy="55" r="12" fill="#378ADD" stroke="#185FA5" stroke-width="2"/><line x1="38" y1="34" x2="44" y2="48" stroke="#378ADD" stroke-width="2"/><line x1="62" y1="34" x2="56" y2="48" stroke="#378ADD" stroke-width="2"/><line x1="40" y1="30" x2="60" y2="30" stroke="#378ADD" stroke-width="2"/></svg>`,
+    comprehensive:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="40" r="28" fill="#E1F5EE" stroke="#1D9E75" stroke-width="2"/><circle cx="50" cy="40" r="18" fill="#9FE1CB" stroke="#1D9E75" stroke-width="1.5"/><circle cx="50" cy="40" r="8" fill="#1D9E75"/></svg>`,
+    deduct:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="15" y="25" width="70" height="38" rx="6" fill="#FAEEDA" stroke="#BA7517" stroke-width="2"/><line x1="30" y1="44" x2="70" y2="44" stroke="#BA7517" stroke-width="4" stroke-linecap="round"/><text x="50" y="20" font-size="12" text-anchor="middle" fill="#BA7517">100</text><text x="50" y="68" font-size="12" text-anchor="middle" fill="#854F0B">80</text><line x1="50" y1="22" x2="50" y2="27" stroke="#BA7517" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+    designate:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="35" r="22" fill="#EEEDFE" stroke="#534AB7" stroke-width="2"/><circle cx="50" cy="35" r="8" fill="#534AB7"/><line x1="50" y1="13" x2="50" y2="57" stroke="#534AB7" stroke-width="1" stroke-dasharray="3,3"/><line x1="28" y1="35" x2="72" y2="35" stroke="#534AB7" stroke-width="1" stroke-dasharray="3,3"/><polyline points="44,62 50,70 56,62" fill="none" stroke="#534AB7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    expedite:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><polyline points="12,42 30,28 50,36 72,18 88,24" fill="none" stroke="#D4537E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><polyline points="80,14 88,22 80,30" fill="none" stroke="#D4537E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><line x1="12" y1="55" x2="88" y2="55" stroke="#F4C0D1" stroke-width="2" stroke-linecap="round"/><polyline points="12,55 30,48 50,52" fill="none" stroke="#F4C0D1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    fluctuate:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><polyline points="10,55 24,30 36,48 50,22 64,40 78,18 90,38" fill="none" stroke="#378ADD" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><line x1="10" y1="65" x2="90" y2="65" stroke="#B5D4F4" stroke-width="2"/></svg>`,
+    generate:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="38" r="20" fill="#FAEEDA" stroke="#BA7517" stroke-width="2"/><line x1="50" y1="8" x2="50" y2="18" stroke="#EF9F27" stroke-width="3" stroke-linecap="round"/><line x1="50" y1="58" x2="50" y2="68" stroke="#EF9F27" stroke-width="3" stroke-linecap="round"/><line x1="20" y1="38" x2="30" y2="38" stroke="#EF9F27" stroke-width="3" stroke-linecap="round"/><line x1="70" y1="38" x2="80" y2="38" stroke="#EF9F27" stroke-width="3" stroke-linecap="round"/><line x1="29" y1="17" x2="36" y2="24" stroke="#FAC775" stroke-width="2.5" stroke-linecap="round"/><line x1="64" y1="52" x2="71" y2="59" stroke="#FAC775" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+    guidelines:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><line x1="20" y1="20" x2="80" y2="20" stroke="#534AB7" stroke-width="3" stroke-linecap="round"/><line x1="20" y1="38" x2="80" y2="38" stroke="#7F77DD" stroke-width="2" stroke-linecap="round" stroke-dasharray="6,4"/><line x1="20" y1="56" x2="80" y2="56" stroke="#534AB7" stroke-width="3" stroke-linecap="round"/><circle cx="50" cy="38" r="6" fill="#534AB7"/></svg>`,
+    accommodate:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="12" y="28" width="76" height="42" rx="6" fill="#E6F1FB" stroke="#378ADD" stroke-width="2"/><circle cx="28" cy="48" r="8" fill="#B5D4F4" stroke="#378ADD" stroke-width="1.5"/><circle cx="50" cy="48" r="8" fill="#B5D4F4" stroke="#378ADD" stroke-width="1.5"/><circle cx="72" cy="48" r="8" fill="#B5D4F4" stroke="#378ADD" stroke-width="1.5"/><polygon points="50,10 52,22 64,22 54,30 58,42 50,34 42,42 46,30 36,22 48,22" fill="#378ADD"/></svg>`,
+    anticipate:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="38" r="24" fill="#E1F5EE" stroke="#1D9E75" stroke-width="2"/><line x1="50" y1="38" x2="50" y2="20" stroke="#1D9E75" stroke-width="3" stroke-linecap="round"/><line x1="50" y1="38" x2="66" y2="30" stroke="#085041" stroke-width="2.5" stroke-linecap="round"/><circle cx="50" cy="38" r="3" fill="#1D9E75"/><line x1="72" y1="18" x2="80" y2="10" stroke="#1D9E75" stroke-width="2" stroke-dasharray="3,3"/><circle cx="80" cy="10" r="4" fill="#5DCAA5"/></svg>`,
+    compliance:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><path d="M50 8 L80 20 L80 46 C80 62 65 72 50 76 C35 72 20 62 20 46 L20 20 Z" fill="#EAF3DE" stroke="#639922" stroke-width="2.5"/><rect x="34" y="35" width="32" height="4" rx="2" fill="#C0DD97"/><rect x="34" y="45" width="24" height="4" rx="2" fill="#C0DD97"/><polyline points="35,28 42,34 54,18" fill="none" stroke="#639922" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    delegate:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><circle cx="25" cy="25" r="12" fill="#85B7EB" stroke="#378ADD" stroke-width="2"/><circle cx="75" cy="55" r="12" fill="#B5D4F4" stroke="#378ADD" stroke-width="2"/><line x1="35" y1="32" x2="60" y2="48" stroke="#378ADD" stroke-width="2.5" stroke-linecap="round"/><polyline points="55,43 62,50 55,57" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    endorse:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="15" y="20" width="70" height="45" rx="6" fill="#EAF3DE" stroke="#639922" stroke-width="2"/><rect x="22" y="30" width="46" height="5" rx="2" fill="#C0DD97"/><rect x="22" y="40" width="32" height="5" rx="2" fill="#C0DD97"/><path d="M22 54 Q30 50 36 54 Q42 58 48 54" fill="none" stroke="#639922" stroke-width="2" stroke-linecap="round"/></svg>`,
+    fiscal:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="38" r="26" fill="#FAEEDA" stroke="#BA7517" stroke-width="2.5"/><text x="50" y="46" font-size="20" font-weight="bold" text-anchor="middle" fill="#BA7517">¥</text><line x1="38" y1="28" x2="62" y2="28" stroke="#EF9F27" stroke-width="2" stroke-linecap="round"/><line x1="38" y1="50" x2="62" y2="50" stroke="#EF9F27" stroke-width="2" stroke-linecap="round"/></svg>`,
+    franchise:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="35" y="8" width="30" height="20" rx="4" fill="#E6F1FB" stroke="#378ADD" stroke-width="2"/><rect x="8" y="45" width="25" height="22" rx="4" fill="#B5D4F4" stroke="#378ADD" stroke-width="1.5"/><rect x="38" y="45" width="24" height="22" rx="4" fill="#B5D4F4" stroke="#378ADD" stroke-width="1.5"/><rect x="67" y="45" width="25" height="22" rx="4" fill="#B5D4F4" stroke="#378ADD" stroke-width="1.5"/><line x1="50" y1="28" x2="50" y2="45" stroke="#378ADD" stroke-width="1.5"/><line x1="50" y1="38" x2="20" y2="38" stroke="#378ADD" stroke-width="1.5"/><line x1="50" y1="38" x2="80" y2="38" stroke="#378ADD" stroke-width="1.5"/><line x1="20" y1="38" x2="20" y2="45" stroke="#378ADD" stroke-width="1.5"/><line x1="80" y1="38" x2="80" y2="45" stroke="#378ADD" stroke-width="1.5"/></svg>`,
+    initiative:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><polygon points="50,8 56,30 80,30 60,46 68,68 50,54 32,68 40,46 20,30 44,30" fill="#FAEEDA" stroke="#BA7517" stroke-width="2"/></svg>`,
+    lucrative:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="22" y="15" width="56" height="56" rx="28" fill="#EAF3DE" stroke="#639922" stroke-width="2.5"/><text x="50" y="52" font-size="26" font-weight="bold" text-anchor="middle" fill="#639922">$</text></svg>`,
+    mandatory:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="15" y="15" width="70" height="52" rx="8" fill="#FCEBEB" stroke="#E24B4A" stroke-width="2.5"/><text x="50" y="50" font-size="24" font-weight="bold" text-anchor="middle" fill="#E24B4A">必</text><rect x="22" y="58" width="56" height="4" rx="2" fill="#F7C1C1"/></svg>`,
+    merger:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><circle cx="30" cy="35" r="18" fill="#B5D4F4" stroke="#378ADD" stroke-width="2"/><circle cx="70" cy="35" r="18" fill="#85B7EB" stroke="#378ADD" stroke-width="2"/><ellipse cx="50" cy="35" rx="12" ry="18" fill="#378ADD" opacity=".6"/><line x1="50" y1="53" x2="50" y2="68" stroke="#378ADD" stroke-width="2.5" stroke-linecap="round"/><rect x="35" y="65" width="30" height="10" rx="4" fill="#378ADD"/></svg>`,
+    offshore:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><ellipse cx="50" cy="55" rx="38" ry="14" fill="#B5D4F4" stroke="#378ADD" stroke-width="1.5"/><polygon points="20,55 50,20 80,55" fill="#E6F1FB" stroke="#378ADD" stroke-width="2"/><rect x="44" y="28" width="12" height="18" rx="2" fill="#378ADD"/><line x1="50" y1="20" x2="50" y2="10" stroke="#185FA5" stroke-width="2.5" stroke-linecap="round"/><polyline points="42,14 50,9 58,14" fill="none" stroke="#185FA5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    preliminary:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="15" y="30" width="70" height="40" rx="6" fill="#F1EFE8" stroke="#888780" stroke-width="2"/><rect x="25" y="15" width="50" height="18" rx="4" fill="#D3D1C7" stroke="#888780" stroke-width="1.5" stroke-dasharray="5,3"/><rect x="22" y="40" width="56" height="5" rx="2" fill="#B4B2A9"/><rect x="22" y="50" width="40" height="5" rx="2" fill="#B4B2A9"/></svg>`,
+    prospective:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="38" r="22" fill="#E6F1FB" stroke="#378ADD" stroke-width="2"/><circle cx="50" cy="38" r="12" fill="#B5D4F4" stroke="#378ADD" stroke-width="1.5"/><circle cx="50" cy="38" r="4" fill="#378ADD"/><line x1="50" y1="16" x2="50" y2="22" stroke="#378ADD" stroke-width="2"/><line x1="50" y1="54" x2="50" y2="60" stroke="#378ADD" stroke-width="2"/><line x1="28" y1="38" x2="34" y2="38" stroke="#378ADD" stroke-width="2"/><line x1="66" y1="38" x2="72" y2="38" stroke="#378ADD" stroke-width="2"/></svg>`,
+    revenue:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="14" y="44" width="14" height="28" rx="3" fill="#C0DD97"/><rect x="32" y="32" width="14" height="40" rx="3" fill="#97C459"/><rect x="50" y="20" width="14" height="52" rx="3" fill="#639922"/><rect x="68" y="28" width="14" height="44" rx="3" fill="#97C459"/><polyline points="14,44 39,32 57,20 75,28" fill="none" stroke="#3B6D11" stroke-width="2"/><line x1="10" y1="72" x2="90" y2="72" stroke="#3B6D11" stroke-width="2"/></svg>`,
+    subsidiary:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="33" y="8" width="34" height="20" rx="4" fill="#85B7EB" stroke="#378ADD" stroke-width="2"/><rect x="62" y="50" width="28" height="18" rx="4" fill="#B5D4F4" stroke="#378ADD" stroke-width="1.5"/><line x1="50" y1="28" x2="76" y2="50" stroke="#378ADD" stroke-width="1.5"/><text x="22" y="48" font-size="9" fill="#185FA5">親会社</text><text x="63" y="48" font-size="8" fill="#378ADD">子会社</text></svg>`,
+    dismissal:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><circle cx="40" cy="28" r="14" fill="#F7C1C1" stroke="#E24B4A" stroke-width="2"/><path d="M20 72 C20 54 60 54 60 72" fill="#FCEBEB" stroke="#E24B4A" stroke-width="2"/><line x1="65" y1="30" x2="85" y2="50" stroke="#E24B4A" stroke-width="4" stroke-linecap="round"/><line x1="85" y1="30" x2="65" y2="50" stroke="#E24B4A" stroke-width="4" stroke-linecap="round"/></svg>`,
+    logistics:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="32" y="25" width="50" height="30" rx="5" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="2"/><rect x="8" y="35" width="28" height="20" rx="4" fill="#D3D1C7" stroke="#888780" stroke-width="1.5"/><circle cx="28" cy="62" r="6" fill="#5F5E5A"/><circle cx="64" cy="62" r="6" fill="#5F5E5A"/><circle cx="80" cy="62" r="6" fill="#5F5E5A"/><line x1="8" y1="55" x2="82" y2="55" stroke="#888780" stroke-width="1.5"/></svg>`,
+    amend:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="18" y="12" width="60" height="60" rx="6" fill="#FAEEDA" stroke="#BA7517" stroke-width="2"/><rect x="26" y="24" width="44" height="5" rx="2" fill="#EF9F27"/><rect x="26" y="34" width="44" height="5" rx="2" fill="#FAC775"/><rect x="26" y="44" width="30" height="5" rx="2" fill="#FAC775"/><line x1="55" y1="42" x2="70" y2="56" stroke="#BA7517" stroke-width="2.5" stroke-linecap="round"/><path d="M55 42 L62 38 L72 48 L68 54Z" fill="#EF9F27" stroke="#BA7517" stroke-width="1.5"/></svg>`,
+    arbitration:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="38" r="12" fill="#F7C1C1" stroke="#E24B4A" stroke-width="2"/><circle cx="80" cy="38" r="12" fill="#F7C1C1" stroke="#E24B4A" stroke-width="2"/><circle cx="50" cy="38" r="14" fill="#EAF3DE" stroke="#639922" stroke-width="2.5"/><line x1="32" y1="38" x2="36" y2="38" stroke="#888780" stroke-width="2"/><line x1="64" y1="38" x2="68" y2="38" stroke="#888780" stroke-width="2"/><text x="50" y="43" font-size="10" font-weight="bold" text-anchor="middle" fill="#639922">中</text></svg>`,
+    audit:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="18" y="10" width="64" height="62" rx="6" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="2"/><rect x="26" y="22" width="14" height="14" rx="3" fill="#B4B2A9"/><rect x="26" y="42" width="14" height="14" rx="3" fill="#639922"/><rect x="48" y="25" width="24" height="5" rx="2" fill="#D3D1C7"/><rect x="48" y="45" width="24" height="5" rx="2" fill="#C0DD97"/><polyline points="27,49 30,52 35,46" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="75" cy="62" r="12" fill="#FAEEDA" stroke="#BA7517" stroke-width="2"/><line x1="71" y1="62" x2="79" y2="62" stroke="#BA7517" stroke-width="2.5" stroke-linecap="round"/><line x1="75" y1="58" x2="75" y2="66" stroke="#BA7517" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+    benchmark:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><line x1="10" y1="65" x2="90" y2="65" stroke="#5F5E5A" stroke-width="2"/><rect x="18" y="42" width="14" height="23" rx="2" fill="#B4B2A9"/><rect x="36" y="30" width="14" height="35" rx="2" fill="#888780"/><rect x="54" y="20" width="14" height="45" rx="2" fill="#5F5E5A"/><rect x="72" y="35" width="14" height="30" rx="2" fill="#888780"/><line x1="10" y1="20" x2="90" y2="20" stroke="#E24B4A" stroke-width="2" stroke-dasharray="6,4"/></svg>`,
+    consolidate:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="8" y="12" width="26" height="18" rx="4" fill="#B5D4F4" stroke="#378ADD" stroke-width="1.5"/><rect x="38" y="12" width="26" height="18" rx="4" fill="#B5D4F4" stroke="#378ADD" stroke-width="1.5"/><rect x="68" y="12" width="26" height="18" rx="4" fill="#B5D4F4" stroke="#378ADD" stroke-width="1.5"/><line x1="21" y1="30" x2="21" y2="42" stroke="#378ADD" stroke-width="1.5"/><line x1="51" y1="30" x2="51" y2="42" stroke="#378ADD" stroke-width="1.5"/><line x1="81" y1="30" x2="81" y2="42" stroke="#378ADD" stroke-width="1.5"/><line x1="21" y1="42" x2="81" y2="42" stroke="#378ADD" stroke-width="1.5"/><line x1="51" y1="42" x2="51" y2="52" stroke="#378ADD" stroke-width="1.5"/><rect x="28" y="52" width="44" height="18" rx="4" fill="#378ADD" stroke="#185FA5" stroke-width="2"/></svg>`,
+    depreciation:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><polyline points="12,18 30,28 50,38 70,50 88,62" fill="none" stroke="#E24B4A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><line x1="10" y1="68" x2="90" y2="68" stroke="#A32D2D" stroke-width="2"/><line x1="10" y1="10" x2="10" y2="68" stroke="#A32D2D" stroke-width="2"/><text x="16" y="16" font-size="9" fill="#639922">高</text><text x="76" y="66" font-size="9" fill="#E24B4A">低</text></svg>`,
+    diligent:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="26" r="14" fill="#9FE1CB" stroke="#1D9E75" stroke-width="2"/><circle cx="50" cy="23" r="6" fill="#1D9E75"/><rect x="30" y="45" width="40" height="28" rx="5" fill="#E1F5EE" stroke="#1D9E75" stroke-width="2"/><rect x="36" y="52" width="28" height="4" rx="2" fill="#9FE1CB"/><rect x="36" y="60" width="20" height="4" rx="2" fill="#9FE1CB"/></svg>`,
+    entrepreneur:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="24" r="13" fill="#B5D4F4" stroke="#378ADD" stroke-width="2"/><circle cx="50" cy="21" r="6" fill="#378ADD"/><path d="M30 65 C30 48 70 48 70 65" fill="#E6F1FB" stroke="#378ADD" stroke-width="2"/><polygon points="50,5 52,2 50,8 48,2" fill="#EF9F27"/><circle cx="68" cy="38" r="10" fill="#EAF3DE" stroke="#639922" stroke-width="1.5"/><text x="68" y="43" font-size="11" font-weight="bold" text-anchor="middle" fill="#639922">$</text></svg>`,
+    feasibility:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="14" y="22" width="72" height="46" rx="6" fill="#E6F1FB" stroke="#378ADD" stroke-width="2"/><circle cx="38" cy="44" r="12" fill="#B5D4F4" stroke="#378ADD" stroke-width="1.5"/><polyline points="30,44 36,50 48,36" fill="none" stroke="#378ADD" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><rect x="56" y="34" width="22" height="6" rx="3" fill="#85B7EB"/><rect x="56" y="46" width="16" height="6" rx="3" fill="#B5D4F4"/></svg>`,
+    infrastructure:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="50" width="80" height="16" rx="4" fill="#D3D1C7" stroke="#888780" stroke-width="2"/><rect x="22" y="30" width="16" height="22" rx="3" fill="#888780" stroke="#5F5E5A" stroke-width="1.5"/><rect x="62" y="22" width="16" height="30" rx="3" fill="#5F5E5A" stroke="#444441" stroke-width="1.5"/><rect x="42" y="38" width="16" height="14" rx="3" fill="#B4B2A9" stroke="#888780" stroke-width="1.5"/><polyline points="10,50 30,40 50,52 70,38 90,50" fill="none" stroke="#E24B4A" stroke-width="1.5" stroke-dasharray="4,3"/></svg>`,
+    liaison:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="35" r="12" fill="#B5D4F4" stroke="#378ADD" stroke-width="2"/><circle cx="80" cy="35" r="12" fill="#B5D4F4" stroke="#378ADD" stroke-width="2"/><circle cx="50" cy="35" r="12" fill="#378ADD" stroke="#185FA5" stroke-width="2.5"/><line x1="32" y1="35" x2="38" y2="35" stroke="#378ADD" stroke-width="2.5" stroke-linecap="round"/><line x1="62" y1="35" x2="68" y2="35" stroke="#378ADD" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+    mediation:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><circle cx="22" cy="34" r="12" fill="#F7C1C1" stroke="#E24B4A" stroke-width="2"/><circle cx="78" cy="34" r="12" fill="#F7C1C1" stroke="#E24B4A" stroke-width="2"/><circle cx="50" cy="34" r="12" fill="#EAF3DE" stroke="#639922" stroke-width="2.5"/><polyline points="34,34 38,34" fill="none" stroke="#639922" stroke-width="2" stroke-linecap="round"/><polyline points="62,34 66,34" fill="none" stroke="#639922" stroke-width="2" stroke-linecap="round"/><text x="50" y="39" font-size="10" font-weight="bold" text-anchor="middle" fill="#3B6D11">和</text></svg>`,
+    municipality:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><polygon points="50,8 55,26 75,26 59,38 66,58 50,46 34,58 41,38 25,26 45,26" fill="#E6F1FB" stroke="#378ADD" stroke-width="2"/><text x="50" y="36" font-size="9" font-weight="bold" text-anchor="middle" fill="#185FA5">市</text><rect x="18" y="62" width="64" height="10" rx="3" fill="#378ADD"/></svg>`,
+    obsolete:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="15" y="20" width="50" height="38" rx="5" fill="#D3D1C7" stroke="#888780" stroke-width="2"/><rect x="22" y="28" width="36" height="5" rx="2" fill="#B4B2A9"/><rect x="22" y="38" width="24" height="5" rx="2" fill="#B4B2A9"/><circle cx="74" cy="46" r="16" fill="#FCEBEB" stroke="#E24B4A" stroke-width="2"/><line x1="65" y1="37" x2="83" y2="55" stroke="#E24B4A" stroke-width="3" stroke-linecap="round"/><line x1="83" y1="37" x2="65" y2="55" stroke="#E24B4A" stroke-width="3" stroke-linecap="round"/></svg>`,
+    procurement:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="55" y="12" width="30" height="22" rx="4" fill="#EAF3DE" stroke="#639922" stroke-width="2"/><rect x="15" y="48" width="30" height="22" rx="4" fill="#C0DD97" stroke="#639922" stroke-width="2"/><line x1="70" y1="34" x2="70" y2="44" stroke="#639922" stroke-width="2" stroke-linecap="round"/><line x1="70" y1="44" x2="30" y2="44" stroke="#639922" stroke-width="2" stroke-linecap="round"/><line x1="30" y1="44" x2="30" y2="48" stroke="#639922" stroke-width="2" stroke-linecap="round"/><polyline points="24,40 30,48 36,40" fill="none" stroke="#639922" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    proficiency:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><polygon points="50,8 60,36 90,36 66,54 76,82 50,64 24,82 34,54 10,36 40,36" fill="#FAEEDA" stroke="#BA7517" stroke-width="2"/><polygon points="50,16 58,36 78,36 62,48 70,68 50,56 30,68 38,48 22,36 42,36" fill="#EF9F27"/><circle cx="50" cy="40" r="6" fill="#854F0B"/></svg>`,
+    reconcile:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="22" width="30" height="22" rx="5" fill="#F7C1C1" stroke="#E24B4A" stroke-width="2"/><rect x="60" y="22" width="30" height="22" rx="5" fill="#F7C1C1" stroke="#E24B4A" stroke-width="2"/><rect x="30" y="55" width="40" height="18" rx="5" fill="#EAF3DE" stroke="#639922" stroke-width="2.5"/><line x1="25" y1="44" x2="50" y2="60" stroke="#639922" stroke-width="2" stroke-linecap="round"/><line x1="75" y1="44" x2="50" y2="60" stroke="#639922" stroke-width="2" stroke-linecap="round"/></svg>`,
+    redundant:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="12" y="22" width="32" height="22" rx="5" fill="#B5D4F4" stroke="#378ADD" stroke-width="2"/><rect x="56" y="22" width="32" height="22" rx="5" fill="#B5D4F4" stroke="#378ADD" stroke-width="2"/><line x1="44" y1="33" x2="56" y2="33" stroke="#E24B4A" stroke-width="2.5" stroke-dasharray="4,3"/><circle cx="50" cy="60" r="12" fill="#FCEBEB" stroke="#E24B4A" stroke-width="2"/><line x1="44" y1="60" x2="56" y2="60" stroke="#E24B4A" stroke-width="3" stroke-linecap="round"/></svg>`,
+    remittance:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="28" width="35" height="26" rx="6" fill="#EAF3DE" stroke="#639922" stroke-width="2"/><rect x="55" y="28" width="35" height="26" rx="6" fill="#EAF3DE" stroke="#639922" stroke-width="2"/><line x1="45" y1="41" x2="55" y2="41" stroke="#639922" stroke-width="2.5" stroke-linecap="round"/><polyline points="50,35 56,41 50,47" fill="none" stroke="#639922" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><text x="27" y="46" font-size="10" font-weight="bold" text-anchor="middle" fill="#639922">¥</text><text x="72" y="46" font-size="10" font-weight="bold" text-anchor="middle" fill="#639922">$</text></svg>`,
+    solvent:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="20" y="25" width="60" height="38" rx="6" fill="#EAF3DE" stroke="#639922" stroke-width="2"/><text x="50" y="50" font-size="20" font-weight="bold" text-anchor="middle" fill="#639922">¥</text><polyline points="25,18 25,12 75,12 75,18" fill="none" stroke="#639922" stroke-width="2" stroke-linecap="round"/><polyline points="26,63 50,72 74,63" fill="none" stroke="#639922" stroke-width="2" stroke-linecap="round"/></svg>`,
+    stipulate:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="18" y="10" width="64" height="65" rx="6" fill="#EEEDFE" stroke="#534AB7" stroke-width="2"/><rect x="26" y="22" width="16" height="5" rx="2" fill="#534AB7"/><rect x="26" y="32" width="48" height="4" rx="2" fill="#AFA9EC"/><rect x="26" y="41" width="48" height="4" rx="2" fill="#AFA9EC"/><rect x="26" y="50" width="36" height="4" rx="2" fill="#AFA9EC"/><line x1="26" y1="63" x2="46" y2="63" stroke="#534AB7" stroke-width="2" stroke-linecap="round"/><line x1="56" y1="63" x2="72" y2="63" stroke="#534AB7" stroke-width="2" stroke-linecap="round"/></svg>`,
+    tenure:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="35" width="80" height="12" rx="6" fill="#E6F1FB" stroke="#378ADD" stroke-width="1.5"/><circle cx="20" cy="41" r="10" fill="#B5D4F4" stroke="#378ADD" stroke-width="2"/><circle cx="80" cy="41" r="10" fill="#85B7EB" stroke="#378ADD" stroke-width="2"/><rect x="18" y="39" width="64" height="4" rx="2" fill="#378ADD"/><text x="20" y="66" font-size="9" text-anchor="middle" fill="#185FA5">開始</text><text x="80" y="66" font-size="9" text-anchor="middle" fill="#185FA5">終了</text></svg>`,
+    turnover:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="38" r="24" fill="#FBEAF0" stroke="#D4537E" stroke-width="2"/><circle cx="50" cy="38" r="14" fill="#F4C0D1" stroke="#D4537E" stroke-width="1.5"/><polyline points="50,14 50,38 64,26" fill="none" stroke="#D4537E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M74 20 A24 24 0 0 1 76 38" fill="none" stroke="#D4537E" stroke-width="2.5" stroke-linecap="round"/><polyline points="74,34 76,40 70,38" fill="none" stroke="#D4537E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    collateral:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="15" y="25" width="35" height="40" rx="5" fill="#FAEEDA" stroke="#BA7517" stroke-width="2"/><path d="M28 35 L28 28 C28 20 42 20 42 28 L42 35" fill="none" stroke="#BA7517" stroke-width="2.5"/><circle cx="35" cy="46" r="6" fill="#BA7517"/><rect x="32" y="46" width="6" height="10" rx="2" fill="#FAEEDA"/><line x1="50" y1="45" x2="68" y2="45" stroke="#639922" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="5,4"/><rect x="68" y="32" width="20" height="26" rx="4" fill="#EAF3DE" stroke="#639922" stroke-width="2"/><text x="78" y="50" font-size="10" font-weight="bold" text-anchor="middle" fill="#639922">¥</text></svg>`,
+    moratorium:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="38" r="26" fill="#FAEEDA" stroke="#BA7517" stroke-width="2.5"/><line x1="50" y1="38" x2="50" y2="18" stroke="#BA7517" stroke-width="3" stroke-linecap="round"/><line x1="50" y1="38" x2="68" y2="52" stroke="#854F0B" stroke-width="2.5" stroke-linecap="round"/><circle cx="50" cy="38" r="3" fill="#BA7517"/><line x1="35" y1="72" x2="65" y2="72" stroke="#EF9F27" stroke-width="3" stroke-linecap="round" stroke-dasharray="5,4"/><polyline points="60,68 66,72 60,76" fill="none" stroke="#EF9F27" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    streamline:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><path d="M12 28 Q30 20 50 28 Q70 36 88 20" fill="none" stroke="#D3D1C7" stroke-width="3" stroke-linecap="round"/><path d="M12 50 Q50 38 88 50" fill="none" stroke="#1D9E75" stroke-width="4" stroke-linecap="round"/><polyline points="80,44 88,50 80,56" fill="none" stroke="#1D9E75" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    prerequisite:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="8" y="22" width="30" height="20" rx="4" fill="#F1EFE8" stroke="#888780" stroke-width="2"/><rect x="62" y="22" width="30" height="20" rx="4" fill="#EEEDFE" stroke="#534AB7" stroke-width="2"/><line x1="38" y1="32" x2="62" y2="32" stroke="#534AB7" stroke-width="2.5" stroke-linecap="round"/><polyline points="56,26 62,32 56,38" fill="none" stroke="#534AB7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><text x="23" y="52" font-size="8" text-anchor="middle" fill="#888780">必須</text></svg>`,
+    noncompliance:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><path d="M50 8 L80 20 L80 46 C80 62 65 72 50 76 C35 72 20 62 20 46 L20 20 Z" fill="#FCEBEB" stroke="#E24B4A" stroke-width="2.5"/><line x1="38" y1="34" x2="62" y2="58" stroke="#E24B4A" stroke-width="4" stroke-linecap="round"/><line x1="62" y1="34" x2="38" y2="58" stroke="#E24B4A" stroke-width="4" stroke-linecap="round"/></svg>`,
+    liquidate:`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="18" y="15" width="64" height="52" rx="6" fill="#E6F1FB" stroke="#378ADD" stroke-width="2"/><rect x="26" y="25" width="14" height="32" rx="3" fill="#85B7EB"/><rect x="44" y="35" width="14" height="22" rx="3" fill="#B5D4F4"/><rect x="62" y="42" width="14" height="15" rx="3" fill="#E6F1FB" stroke="#B5D4F4" stroke-width="1.5"/><polyline points="18,67 82,67" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round"/></svg>`,
+  };
+  return svgs[key]||`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><rect x="20" y="20" width="60" height="40" rx="8" fill="#E6F1FB" stroke="#378ADD" stroke-width="2"/><text x="50" y="45" font-size="12" text-anchor="middle" fill="#378ADD">${key}</text></svg>`;
+}
+
+function showLearnWord(i){
+  const w=learnQueue[i];
+  document.getElementById('l-en').textContent=w.en.toUpperCase();
+  document.getElementById('l-ja').textContent=w.ja;
+  document.getElementById('l-pos').textContent=w.pos;
+  document.getElementById('illus-wrap').innerHTML=buildIllus(w.il||w.en);
+  const pct=Math.round(((currentLap-1)*learnQueue.length+i+1)/(totalLaps*learnQueue.length)*100);
+  document.getElementById('learn-prog').style.width=pct+'%';
+  document.getElementById('l-counter').textContent=`${i+1} / ${learnQueue.length}　（${currentLap}周目 / 全${totalLaps}周）`;
+  document.getElementById('lap-badge').textContent=`${currentLap}周目`;
+  document.getElementById('l-en').style.opacity='1';
+  document.getElementById('l-ja').style.opacity='1';
+  flashIt();
+}
+
+function showLearnNext(){
+  if(learnIdx>=learnQueue.length){
+    if(currentLap<totalLaps){currentLap++;learnIdx=0;showLearnNext();}
+    else learnFinish();
+    return;
+  }
+  showLearnWord(learnIdx);
+  learnIdx++;
+  learnTimer=setTimeout(showLearnNext,getInterval());
+}
+
+function learnStart(){
+  if(learnRunning)return;
+  totalLaps=parseInt(document.getElementById('lap-input').value)||3;
+  learnRunning=true; learnStart_=Date.now();
+  document.getElementById('l-start').style.display='none';
+  document.getElementById('l-pause').style.display='';
+  document.getElementById('l-stop-btn').style.display='';
+  showLearnNext();
+}
+
+function learnPause(){
+  const btn=document.getElementById('l-pause');
+  if(!learnPaused){
+    clearTimeout(learnTimer);learnPaused=true;btn.textContent='再開';
+    document.getElementById('l-en').style.opacity='.3';
+    document.getElementById('l-ja').style.opacity='.3';
+  } else {
+    learnPaused=false;btn.textContent='一時停止';
+    showLearnNext();
+  }
+}
+
+function stopLearn(){clearTimeout(learnTimer);learnRunning=false;learnPaused=false;}
+
+function learnStop(){
+  stopLearn();
+  reviewMode?goHome():goGroupSelect('learn');
+}
+
+function learnFinish(){
+  stopLearn();
+  const el=Math.round((Date.now()-learnStart_)/1000);
+  const m=Math.floor(el/60),s=el%60;
+  document.getElementById('lr-msg').textContent=`${learnQueue.length}語 × ${totalLaps}周 を ${m>0?m+'分'+s+'秒':s+'秒'} で完了！`;
+  show('s-learn-result');
+}
+function learnRetry(){stopLearn();learnIdx=0;currentLap=1;learnRunning=false;learnPaused=false;document.getElementById('l-start').style.display='';document.getElementById('l-pause').style.display='none';document.getElementById('l-stop-btn').style.display='none';document.getElementById('l-en').textContent='READY?';document.getElementById('l-ja').textContent='スタートを押して開始';document.getElementById('l-pos').textContent='';document.getElementById('illus-wrap').innerHTML='';document.getElementById('learn-prog').style.width='0%';document.getElementById('l-counter').textContent='';document.getElementById('lap-badge').textContent='';show('s-learn');}
+function learnShuffle(){const arr=[...learnQueue];for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}startLearnWithQueue(arr,document.getElementById('learn-title').textContent);}
+
+function startQuiz(g){
+  const pool=WORDS.filter(w=>w.g===g);
+  quizQueue=[...pool];quizIdx=0;quizCorrect=0;quizWrong=0;
+  document.getElementById('quiz-title').textContent=GROUP_NAMES[g];
+  show('s-quiz');renderQuiz();
+}
+
+function renderQuiz(){
+  if(quizIdx>=quizQueue.length){showResult();return;}
+  quizAnswered=false;
+  const w=quizQueue[quizIdx];
+  document.getElementById('q-word').textContent=w.en.toUpperCase();
+  document.getElementById('q-pos').textContent=w.pos;
+  document.getElementById('q-prog').style.width=Math.round(quizIdx/quizQueue.length*100)+'%';
+  document.getElementById('q-counter').textContent=(quizIdx+1)+' / '+quizQueue.length;
+  document.getElementById('q-score-live').textContent='正解: '+quizCorrect+' / 不正解: '+quizWrong;
+  document.getElementById('q-feedback').textContent='';
+  document.getElementById('q-next').style.display='none';
+  const distractors=WORDS.filter(x=>x.en!==w.en).sort(()=>Math.random()-.5).slice(0,3);
+  const choices=[w,...distractors].sort(()=>Math.random()-.5);
+  const box=document.getElementById('q-choices');
+  box.innerHTML='';
+  choices.forEach(c=>{
+    const btn=document.createElement('button');
+    btn.className='choice-btn';
+    btn.textContent=c.ja;
+    btn.onclick=()=>answerQuiz(c.en===w.en,btn,w.ja,w.en);
+    box.appendChild(btn);
+  });
+}
+
+function answerQuiz(correct,btn,correctJa,wordEn){
+  if(quizAnswered)return;
+  quizAnswered=true;
+  document.querySelectorAll('.choice-btn').forEach(b=>{b.disabled=true;if(b.textContent===correctJa)b.classList.add('correct');});
+  if(correct){
+    btn.classList.add('correct');quizCorrect++;
+    document.getElementById('q-feedback').textContent='正解！';
+    document.getElementById('q-feedback').style.color='var(--color-text-success)';
+  } else {
+    btn.classList.add('wrong');quizWrong++;
+    wrongSet.add(wordEn);
+    document.getElementById('q-feedback').textContent='不正解。正解: '+correctJa;
+    document.getElementById('q-feedback').style.color='var(--color-text-danger)';
+  }
+  document.getElementById('q-score-live').textContent='正解: '+quizCorrect+' / 不正解: '+quizWrong;
+  document.getElementById('q-next').style.display='';
+}
+
+function quizNext(){quizIdx++;renderQuiz();}
+
+function showResult(){
+  const total=quizQueue.length,pct=Math.round(quizCorrect/total*100);
+  let emoji='🎉',title='よくできました！',msg='';
+  if(pct>=90){emoji='🏆';title='パーフェクト！';msg='ほぼ満点！次のグループへ挑戦しよう。';}
+  else if(pct>=70){emoji='🎉';title='よくできました！';msg='着実に覚えています。誤答単語を復習しよう。';}
+  else if(pct>=50){emoji='📖';title='もう少し！';msg='復習モードで苦手を克服しよう。';}
+  else{emoji='💪';title='練習しましょう！';msg='学習モードで単語を確認してから再挑戦しよう。';}
+  document.getElementById('r-emoji').textContent=emoji;
+  document.getElementById('r-score').textContent=quizCorrect+' / '+total+'問';
+  document.getElementById('r-sub').textContent='正答率 '+pct+'%';
+  document.getElementById('r-title').textContent=title;
+  document.getElementById('r-msg').textContent=msg;
+  document.getElementById('rs-correct').textContent=quizCorrect;
+  document.getElementById('rs-wrong').textContent=quizWrong;
+  document.getElementById('rs-total-wrong').textContent=wrongSet.size;
+  show('s-result');
+}
+
+function retryQuiz(){startQuiz(currentGroup);}
+
+function showWrongList(){
+  const cont=document.getElementById('wrong-list-content');
+  if(wrongSet.size===0){
+    cont.innerHTML='<div style="text-align:center;padding:2rem;color:var(--color-text-secondary);font-size:14px;">誤答はまだ記録されていません</div>';
+    show('s-wrong');return;
+  }
+  const items=WORDS.filter(w=>wrongSet.has(w.en));
+  let html=`<div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:.75rem;">${items.length}語 が記録されています</div><div class="wrong-list">`;
+  items.forEach(w=>{
+    html+=`<div class="wrong-item"><div class="illus-wrap" style="width:48px;height:38px;flex-shrink:0;">${buildIllus(w.il||w.en)}</div><div style="flex:1;min-width:0;"><div class="we">${w.en}</div><div class="wj">${w.ja}</div><div class="wp">${w.pos}</div></div><button class="success" style="font-size:12px;padding:6px 10px;flex-shrink:0;" onclick="markLearned('${w.en}',this)"><i class="ti ti-check" aria-hidden="true"></i> 覚えた</button></div>`;
+  });
+  html+='</div>';
+  cont.innerHTML=html;
+  show('s-wrong');
+}
+
+function markLearned(en,btn){
+  wrongSet.delete(en);
+  const item=btn.closest('.wrong-item');
+  item.style.opacity='.4';
+  item.style.pointerEvents='none';
+  btn.textContent='除外済み';
+  const cnt=document.querySelector('#wrong-list-content > div:first-child');
+  if(cnt)cnt.textContent=`${wrongSet.size}語 が記録されています`;
+  updateHomeCount();
+}
+
+updateHomeCount();
+</script>
